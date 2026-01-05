@@ -1,0 +1,537 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tournament Results — New Years Doubles</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  </head>
+  <body class="bg-gray-50">
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <header class="text-center mb-6">
+        <h1 class="text-3xl font-bold text-gray-900">New Years Doubles</h1>
+        <p class="mt-1 text-gray-500">Standings</p>
+      </header>
+
+      <section class="bg-white shadow rounded-lg">
+        <div class="px-4 sm:px-6 pt-6">
+          <div class="border-b border-gray-200">
+            <nav
+              class="-mb-px flex gap-4"
+              role="tablist"
+              aria-label="Results tabs"
+            >
+              <button
+                class="tab-btn whitespace-nowrap border-b-2 px-3 py-2 text-sm font-medium text-blue-600 border-blue-600"
+                data-tab-target="teams"
+                aria-selected="true"
+                role="tab"
+              >
+                Doubles Teams
+              </button>
+              <button
+                class="tab-btn whitespace-nowrap border-b-2 px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 border-transparent"
+                data-tab-target="singles"
+                aria-selected="false"
+                role="tab"
+              >
+                Singles
+              </button>
+              <button
+                class="tab-btn whitespace-nowrap border-b-2 px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 border-transparent"
+                data-tab-target="scratch"
+                aria-selected="false"
+                role="tab"
+              >
+                Scratch Pot
+              </button>
+            </nav>
+          </div>
+
+          <div class="mt-4">
+            <div class="relative max-w-md">
+              <input
+                id="searchInput"
+                type="text"
+                placeholder="Search for a player or team..."
+                class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm placeholder:text-gray-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+              <button
+                id="clearSearchBtn"
+                type="button"
+                class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700"
+                style="display: none"
+                aria-label="Clear search"
+              >
+                <!-- Heroicon - X Mark (Mini) -->
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-5 h-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="px-4 sm:px-6 pb-6">
+          <!-- Teams Panel -->
+          <div
+            id="teams"
+            class="tab-panel mt-6"
+            role="tabpanel"
+            aria-labelledby="teams-tab"
+          >
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50 sticky top-0 z-10">
+                  <tr id="teamsHeader"></tr>
+                </thead>
+                <tbody id="teamsBody" class="divide-y divide-gray-100"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Singles Panel -->
+          <div
+            id="singles"
+            class="tab-panel mt-6 hidden"
+            role="tabpanel"
+            aria-labelledby="singles-tab"
+          >
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                  <tr id="singlesHeader"></tr>
+                </thead>
+                <tbody
+                  id="singlesBody"
+                  class="divide-y divide-gray-100"
+                ></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Scratch Panel -->
+          <div
+            id="scratch"
+            class="tab-panel mt-6 hidden"
+            role="tabpanel"
+            aria-labelledby="scratch-tab"
+          >
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                  <tr id="scratchHeader"></tr>
+                </thead>
+                <tbody
+                  id="scratchBody"
+                  class="divide-y divide-gray-100"
+                ></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      // CSV file locations
+      const files = {
+        teams: "./data/events/new-years-doubles/2026/results.csv",
+        singles: "./data/events/new-years-doubles/2026/singles.csv",
+        scratch: "./data/events/new-years-doubles/2026/scratch-pot.csv",
+      };
+
+      // Preset widths per column key
+      // Adjust these as you prefer for your actual columns!
+      const columnWidthMap = {
+        Place: "w-14 min-w-[3.5rem]",
+        Squad: "w-12 min-w-[3rem]",
+        Team: "w-28 min-w-[6rem]",
+        Player: "w-32 min-w-[8rem]",
+        "Player 1": "w-32 min-w-[8rem]",
+        "Player 2": "w-32 min-w-[8rem]",
+        HCP: "w-14 min-w-[3.5rem]",
+        Scratch: "w-20 min-w-[5rem]",
+        "Scratch Series": "w-24",
+        "HCP Series": "w-24",
+        "Game 1": "w-16",
+        "Game 2": "w-16",
+        "Game 3": "w-16",
+        Pace: "w-14",
+        Average: "w-20 min-w-[5rem]",
+        // fallback default for unknown columns:
+        "*": "min-w-[7rem]",
+      };
+
+      // Table state with headers, original rows, and last sort state
+      const tableState = {
+        teams: {
+          headers: [],
+          rowsOriginal: [],
+          sort: { key: "Place", dir: "asc" },
+        },
+        singles: {
+          headers: [],
+          rowsOriginal: [],
+          sort: { key: "Place", dir: "asc" },
+        },
+        scratch: {
+          headers: [],
+          rowsOriginal: [],
+          sort: { key: "Place", dir: "asc" },
+        },
+      };
+
+      const numericHeaderHints = [
+        "place",
+        "game",
+        "series",
+        "hcp",
+        "average",
+        "pace",
+        "scratch",
+      ];
+
+      function normalizeRows(rows) {
+        return rows.map((row) => {
+          const out = {};
+          Object.keys(row).forEach((k) => {
+            const key = (k || "").trim();
+            out[key] = row[k];
+          });
+          return out;
+        });
+      }
+
+      function isLikelyNumericHeader(h) {
+        return numericHeaderHints.some((k) => h.toLowerCase().includes(k));
+      }
+
+      function parseMaybeNumber(v) {
+        if (typeof v === "number") return v;
+        if (typeof v !== "string") return NaN;
+        const s = v.replace(/,/g, "").trim();
+        if (s === "") return NaN;
+        const n = Number(s);
+        return Number.isFinite(n) ? n : NaN;
+      }
+
+      function sortRows(rows, key, dir) {
+        const withIndex = rows.map((r, i) => ({ r, i }));
+        const numericPreferred = isLikelyNumericHeader(key);
+        withIndex.sort((a, b) => {
+          const av = a.r[key] ?? a.r[key?.trim?.()];
+          const bv = b.r[key] ?? b.r[key?.trim?.()];
+          if (numericPreferred) {
+            const an = parseMaybeNumber(av);
+            const bn = parseMaybeNumber(bv);
+            if (!Number.isNaN(an) && !Number.isNaN(bn)) {
+              return dir === "asc" ? an - bn : bn - an;
+            }
+          }
+          // Fallback string compare
+          const as = (av ?? "").toString().toLowerCase();
+          const bs = (bv ?? "").toString().toLowerCase();
+          if (as < bs) return dir === "asc" ? -1 : 1;
+          if (as > bs) return dir === "asc" ? 1 : -1;
+          // stable
+          return a.i - b.i;
+        });
+        return withIndex.map((x) => x.r);
+      }
+
+      // Apply preset width class by column name
+      function getColumnWidthClass(h) {
+        return columnWidthMap[h] || columnWidthMap["*"];
+      }
+
+      // Render table with preset widths and sortable headers
+      function renderTable(headers, data, headerId, bodyId, tableKey) {
+        const theadTr = document.getElementById(headerId);
+        const tbody = document.getElementById(bodyId);
+
+        theadTr.innerHTML = "";
+        tbody.innerHTML = "";
+
+        const currentSort = tableState[tableKey]?.sort || {
+          key: "",
+          dir: "asc",
+        };
+
+        headers.forEach((h) => {
+          const th = document.createElement("th");
+          th.className = [
+            getColumnWidthClass(h),
+            "px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 select-none",
+            "cursor-pointer",
+            "hover:text-gray-800",
+            "sticky top-0 bg-gray-50 z-10 group", // Make the header sticky per column and set up the group
+          ].join(" ");
+          th.setAttribute("data-key", h);
+          th.setAttribute("role", "columnheader");
+
+          // Label + sort indicator
+          const wrap = document.createElement("div");
+          wrap.className = "flex items-center gap-1";
+          const label = document.createElement("span");
+          label.textContent = h;
+          wrap.appendChild(label);
+
+          // Sort icon for unsorted columns: faded by default, show on hover
+          const isSorted = currentSort.key === h;
+          const iconSpan = document.createElement("span");
+          iconSpan.className = isSorted
+            ? "ml-1 mt-1 text-gray-500 opacity-100"
+            : "ml-1 mt-1 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity";
+          iconSpan.setHTMLUnsafe(
+            isSorted
+              ? currentSort.dir === "asc"
+                ? `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
+  <path stroke-linecap="round" stroke-linejoin="round" d="M3 4.5h14.25M3 9h9.75M3 13.5h9.75m4.5-4.5v12m0 0-3.75-3.75M17.25 21 21 17.25" />
+</svg>
+`
+                : `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
+  <path stroke-linecap="round" stroke-linejoin="round" d="M3 4.5h14.25M3 9h9.75M3 13.5h5.25m5.25-.75L17.25 9m0 0L21 12.75M17.25 9v12" />
+</svg>
+`
+              : `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
+  <path stroke-linecap="round" stroke-linejoin="round" d="M3 4.5h14.25M3 9h9.75M3 13.5h5.25m5.25-.75L17.25 9m0 0L21 12.75M17.25 9v12" />
+</svg>
+`,
+          ); // Show "▲" as "sortable"
+
+          if (!isSorted) {
+            // For unsorted columns, change icon to ▼ on hover if previous direction was desc
+            // (Optional – keep as "▲" always for simplicity)
+          }
+
+          wrap.appendChild(iconSpan);
+          th.appendChild(wrap);
+          theadTr.appendChild(th);
+
+          // Click to sort
+          th.addEventListener("click", () => {
+            const prev = tableState[tableKey].sort;
+            const nextDir =
+              prev.key === h && prev.dir === "asc" ? "desc" : "asc";
+            tableState[tableKey].sort = { key: h, dir: nextDir };
+            const sorted = sortRows(
+              tableState[tableKey].rowsOriginal,
+              h,
+              nextDir,
+            );
+            renderTable(headers, sorted, headerId, bodyId, tableKey);
+            applySearch();
+          });
+        });
+
+        data.forEach((row) => {
+          const tr = document.createElement("tr");
+          tr.className = "";
+          headers.forEach((h) => {
+            const td = document.createElement("td");
+            const v = row[h] ?? row[h?.trim?.()] ?? "";
+            const isNumeric =
+              (typeof v === "number" && !isNaN(v)) ||
+              (typeof v === "string" &&
+                v.trim() !== "" &&
+                !isNaN(Number(v.replaceAll(",", ""))));
+            const hintNumeric = isLikelyNumericHeader(h);
+            td.className =
+              getColumnWidthClass(h) +
+              " px-4 py-2 text-sm whitespace-nowrap " +
+              (isNumeric || hintNumeric
+                ? "text-right tabular-nums"
+                : "text-gray-900");
+            td.textContent = v;
+            tr.appendChild(td);
+          });
+          tbody.appendChild(tr);
+        });
+
+        if (tbody.children.length === 0) {
+          const noRow = document.createElement("tr");
+          const td = document.createElement("td");
+          td.colSpan = headers.length;
+          td.className = "text-center py-4 text-gray-500";
+          td.textContent = "No results found for your search.";
+          noRow.appendChild(td);
+          tbody.appendChild(noRow);
+        }
+      }
+
+      // Load CSV as tab-delimited and set default sort to Place asc
+      function loadCSV(file, headerId, bodyId) {
+        const tableKey = headerId.replace(/Header$/, "");
+        Papa.parse(file, {
+          download: true,
+          header: true,
+          delimiter: "\t",
+          skipEmptyLines: true,
+          complete: (results) => {
+            const raw = results.data || [];
+            const rows = normalizeRows(raw);
+            if (!rows.length) {
+              tableState[tableKey].headers = [];
+              tableState[tableKey].rowsOriginal = [];
+              renderTable([], [], headerId, bodyId, tableKey);
+              return;
+            }
+            const headers = Object.keys(rows[0]);
+            tableState[tableKey].headers = headers;
+            tableState[tableKey].rowsOriginal = rows;
+
+            const defaultKey = headers.includes("Place") ? "Place" : headers[0];
+            tableState[tableKey].sort = { key: defaultKey, dir: "asc" };
+            const sorted = sortRows(rows, defaultKey, "asc");
+
+            renderTable(headers, sorted, headerId, bodyId, tableKey);
+            applySearch();
+          },
+          error: () => {
+            renderTable(
+              ["Error"],
+              [{ Error: "Failed to load data" }],
+              headerId,
+              bodyId,
+              tableKey,
+            );
+          },
+        });
+      }
+
+      // Search across active tab
+      function applySearch() {
+        const value = (document.getElementById("searchInput").value || "")
+          .toLowerCase()
+          .trim();
+        const activePanel = document.querySelector(".tab-panel:not(.hidden)");
+        if (!activePanel) return;
+        const tbody = activePanel.querySelector("tbody");
+        const rows = Array.from(tbody.querySelectorAll("tr"));
+
+        let visibleCount = 0;
+        rows.forEach((tr) => {
+          const text = tr.textContent.toLowerCase();
+          const isVisible = text.includes(value);
+          tr.style.display = isVisible ? "" : "none";
+          if (isVisible) visibleCount++;
+        });
+
+        // Remove any existing "no results" message
+        const prevNoResults = tbody.querySelector(".no-results-message");
+        if (prevNoResults) prevNoResults.remove();
+
+        if (visibleCount === 0) {
+          // Count columns by checking the first header in thead; fallback if not found
+          let colCount = tbody
+            .closest("table")
+            .querySelectorAll("thead tr th").length;
+          if (!colCount) colCount = rows[0]?.children.length || 1;
+          const noRow = document.createElement("tr");
+          noRow.className = "no-results-message";
+          const td = document.createElement("td");
+          td.colSpan = colCount;
+          td.className = "text-center py-4 text-gray-500";
+          td.textContent = "No results found for your search.";
+          noRow.appendChild(td);
+          tbody.appendChild(noRow);
+        }
+      }
+
+      // On tab change, reset sort to default and re-render the table
+      function resetSortOnTabChange(targetKey) {
+        const st = tableState[targetKey];
+        if (!st.headers.length || !st.rowsOriginal.length) return;
+        const defaultKey = st.headers.includes("Place")
+          ? "Place"
+          : st.headers[0];
+        st.sort = { key: defaultKey, dir: "asc" };
+        const sorted = sortRows(st.rowsOriginal, defaultKey, "asc");
+        renderTable(
+          st.headers,
+          sorted,
+          targetKey + "Header",
+          targetKey + "Body",
+          targetKey,
+        );
+        applySearch();
+      }
+
+      // Simple tab switching with sort reset
+      function setupTabs() {
+        const buttons = document.querySelectorAll(".tab-btn");
+        const panels = document.querySelectorAll(".tab-panel");
+
+        buttons.forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const target = btn.getAttribute("data-tab-target");
+
+            buttons.forEach((b) => {
+              b.setAttribute("aria-selected", "false");
+              b.classList.remove("text-blue-600", "border-blue-600");
+              b.classList.add("text-gray-500", "border-transparent");
+            });
+
+            panels.forEach((p) => p.classList.add("hidden"));
+
+            btn.setAttribute("aria-selected", "true");
+            btn.classList.remove("text-gray-500", "border-transparent");
+            btn.classList.add("text-blue-600", "border-blue-600");
+
+            const panel = document.getElementById(target);
+            if (panel) panel.classList.remove("hidden");
+
+            // Reset sort to default for the new tab
+            resetSortOnTabChange(target);
+
+            // Re-apply search on tab change
+            applySearch();
+          });
+        });
+      }
+
+      // Wire search
+      function setupSearch() {
+        const input = document.getElementById("searchInput");
+        const clearBtn = document.getElementById("clearSearchBtn");
+        function toggleClearBtn() {
+          clearBtn.style.display = input.value ? "" : "none";
+        }
+        input.addEventListener("input", () => {
+          applySearch();
+          toggleClearBtn();
+        });
+        clearBtn.addEventListener("click", () => {
+          input.value = "";
+          applySearch();
+          toggleClearBtn();
+          input.focus();
+        });
+        toggleClearBtn();
+      }
+
+      // Initial load
+      document.addEventListener("DOMContentLoaded", () => {
+        setupTabs();
+        setupSearch();
+        loadCSV(files.teams, "teamsHeader", "teamsBody");
+        loadCSV(files.singles, "singlesHeader", "singlesBody");
+        loadCSV(files.scratch, "scratchHeader", "scratchBody");
+      });
+    </script>
+  </body>
+</html>
