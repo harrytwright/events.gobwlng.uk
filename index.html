@@ -3,49 +3,28 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Tournament Results — New Years Doubles</title>
+    <title>Tournament Results</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
   </head>
   <body class="bg-gray-50">
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <header class="text-center mb-6">
-        <h1 class="text-3xl font-bold text-gray-900">New Years Doubles</h1>
-        <p class="mt-1 text-gray-500">Standings</p>
+      <!-- Dynamic event header -->
+      <header id="eventHeader" class="mb-6 text-center">
+        <h1 class="text-3xl font-bold text-gray-900">Loading event…</h1>
+        <p class="mt-1 text-gray-500">Please wait while we fetch the results.</p>
       </header>
 
       <section class="bg-white shadow rounded-lg">
         <div class="px-4 sm:px-6 pt-6">
           <div class="border-b border-gray-200">
             <nav
+              id="tabsNav"
               class="-mb-px flex gap-4"
               role="tablist"
               aria-label="Results tabs"
             >
-              <button
-                class="tab-btn whitespace-nowrap border-b-2 px-3 py-2 text-sm font-medium text-blue-600 border-blue-600"
-                data-tab-target="teams"
-                aria-selected="true"
-                role="tab"
-              >
-                Doubles Teams
-              </button>
-              <button
-                class="tab-btn whitespace-nowrap border-b-2 px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 border-transparent"
-                data-tab-target="singles"
-                aria-selected="false"
-                role="tab"
-              >
-                Singles
-              </button>
-              <button
-                class="tab-btn whitespace-nowrap border-b-2 px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 border-transparent"
-                data-tab-target="scratch"
-                aria-selected="false"
-                role="tab"
-              >
-                Scratch Pot
-              </button>
+              <!-- Tabs will be injected from meta.json -->
             </nav>
           </div>
 
@@ -85,77 +64,27 @@
           </div>
         </div>
 
-        <div class="px-4 sm:px-6 pb-6">
-          <!-- Teams Panel -->
-          <div
-            id="teams"
-            class="tab-panel mt-6"
-            role="tabpanel"
-            aria-labelledby="teams-tab"
-          >
-            <div class="overflow-x-auto">
-              <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50 sticky top-0 z-10">
-                  <tr id="teamsHeader"></tr>
-                </thead>
-                <tbody id="teamsBody" class="divide-y divide-gray-100"></tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- Singles Panel -->
-          <div
-            id="singles"
-            class="tab-panel mt-6 hidden"
-            role="tabpanel"
-            aria-labelledby="singles-tab"
-          >
-            <div class="overflow-x-auto">
-              <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                  <tr id="singlesHeader"></tr>
-                </thead>
-                <tbody
-                  id="singlesBody"
-                  class="divide-y divide-gray-100"
-                ></tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- Scratch Panel -->
-          <div
-            id="scratch"
-            class="tab-panel mt-6 hidden"
-            role="tabpanel"
-            aria-labelledby="scratch-tab"
-          >
-            <div class="overflow-x-auto">
-              <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                  <tr id="scratchHeader"></tr>
-                </thead>
-                <tbody
-                  id="scratchBody"
-                  class="divide-y divide-gray-100"
-                ></tbody>
-              </table>
-            </div>
-          </div>
+        <div id="panelsContainer" class="px-4 sm:px-6 pb-6">
+          <!-- Tab panels will be injected from meta.json -->
         </div>
       </section>
     </main>
 
     <script>
-      // CSV file locations
-      const files = {
-        teams: "./data/events/new-years-doubles/2026/results.csv",
-        singles: "./data/events/new-years-doubles/2026/singles.csv",
-        scratch: "./data/events/new-years-doubles/2026/scratch-pot.csv",
-      };
+      // ---- Utility: safe innerHTML for trusted SVG strings ----
+      // Minimal helper to mirror the previous setHTMLUnsafe usage
+      if (!Element.prototype.setHTMLUnsafe) {
+        Element.prototype.setHTMLUnsafe = function (html) {
+          this.innerHTML = html;
+        };
+      }
+
+      // ---- Event configuration ----
+      // Base path for this event; when you add more events,
+      // this can be parameterised (e.g. via query string or build step).
+      const EVENT_BASE_PATH = "./data/events/new-years-doubles/2026";
 
       // Preset widths per column key
-      // Adjust these as you prefer for your actual columns!
       const columnWidthMap = {
         Place: "w-14 min-w-[3.5rem]",
         Squad: "w-12 min-w-[3rem]",
@@ -177,23 +106,8 @@
       };
 
       // Table state with headers, original rows, and last sort state
-      const tableState = {
-        teams: {
-          headers: [],
-          rowsOriginal: [],
-          sort: { key: "Place", dir: "asc" },
-        },
-        singles: {
-          headers: [],
-          rowsOriginal: [],
-          sort: { key: "Place", dir: "asc" },
-        },
-        scratch: {
-          headers: [],
-          rowsOriginal: [],
-          sort: { key: "Place", dir: "asc" },
-        },
-      };
+      // This is now dynamic; keys are slugified tab ids (from meta.files[].name)
+      const tableState = {};
 
       const numericHeaderHints = [
         "place",
@@ -253,15 +167,138 @@
         return withIndex.map((x) => x.r);
       }
 
-      // Apply preset width class by column name
       function getColumnWidthClass(h) {
         return columnWidthMap[h] || columnWidthMap["*"];
       }
 
-      // Render table with preset widths and sortable headers
+      // ---- Rendering: event header from meta.json ----
+
+      function formatDateRange(dates) {
+        if (!Array.isArray(dates) || dates.length === 0) return "";
+        // Expecting dd/mm/yyyy or similar; we keep it simple and just join.
+        if (dates.length === 1) return dates[0];
+        if (dates.length === 2) return dates[0] + " – " + dates[1];
+        return dates.join(", ");
+      }
+
+      function renderEventHeader(meta) {
+        const header = document.getElementById("eventHeader");
+        header.innerHTML = "";
+
+        const title = document.createElement("h1");
+        title.className = "text-3xl font-bold text-gray-900";
+        title.textContent = meta.name || "Tournament Results";
+
+        const infoRow = document.createElement("div");
+        infoRow.className = "mt-2 flex flex-wrap items-center justify-center gap-3";
+
+        if (meta.type || meta.format || meta.pattern) {
+          const badge = document.createElement("span");
+          badge.className =
+            "text-sm text-blue-700 font-medium bg-blue-50 border border-blue-100 rounded px-2 py-0.5";
+          const parts = [];
+          if (meta.type) parts.push(capitalize(meta.type));
+          if (meta.format) parts.push(prettyFormat(meta.format));
+          if (meta.pattern) parts.push(meta.pattern);
+          badge.textContent = parts.join(" • ");
+          infoRow.appendChild(badge);
+        }
+
+        if (meta.dates && meta.dates.length) {
+          const dateSpan = document.createElement("span");
+          dateSpan.className = "text-sm text-gray-500";
+          dateSpan.textContent = formatDateRange(meta.dates);
+          infoRow.appendChild(dateSpan);
+        }
+
+        header.appendChild(title);
+        if (infoRow.children.length) header.appendChild(infoRow);
+      }
+
+      function capitalize(str) {
+        if (!str) return "";
+        return str.charAt(0).toUpperCase() + str.slice(1);
+      }
+
+      function prettyFormat(str) {
+        // e.g. "doubles-reentry" → "Doubles Reentry"
+        return str
+          .split(/[-_]/g)
+          .map((part) => capitalize(part))
+          .join(" ");
+      }
+
+      // ---- Tabs & panels from meta.json ----
+
+      function slugify(str) {
+        return (str || "")
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^[-]+|[-]+$/g, "");
+      }
+
+      function createTabAndPanel(id, label, isActive) {
+        const tabsNav = document.getElementById("tabsNav");
+        const panelsContainer = document.getElementById("panelsContainer");
+
+        // Tab button
+        const btn = document.createElement("button");
+        btn.className =
+          "tab-btn whitespace-nowrap border-b-2 px-3 py-2 text-sm font-medium " +
+          (isActive
+            ? "text-blue-600 border-blue-600"
+            : "text-gray-500 hover:text-gray-700 border-transparent");
+        btn.setAttribute("data-tab-target", id);
+        btn.setAttribute("aria-selected", isActive ? "true" : "false");
+        btn.setAttribute("role", "tab");
+        btn.textContent = label;
+        tabsNav.appendChild(btn);
+
+        // Panel
+        const panel = document.createElement("div");
+        panel.id = id;
+        panel.className =
+          "tab-panel mt-6" + (isActive ? "" : " hidden");
+        panel.setAttribute("role", "tabpanel");
+        panel.setAttribute("aria-labelledby", id + "-tab");
+
+        const wrapper = document.createElement("div");
+        wrapper.className = "overflow-x-auto";
+
+        const table = document.createElement("table");
+        table.className = "min-w-full divide-y divide-gray-200";
+
+        const thead = document.createElement("thead");
+        thead.className = "bg-gray-50 sticky top-0 z-10";
+        const trHead = document.createElement("tr");
+        trHead.id = id + "Header";
+        thead.appendChild(trHead);
+
+        const tbody = document.createElement("tbody");
+        tbody.id = id + "Body";
+        tbody.className = "divide-y divide-gray-100";
+
+        table.appendChild(thead);
+        table.appendChild(tbody);
+        wrapper.appendChild(table);
+        panel.appendChild(wrapper);
+        panelsContainer.appendChild(panel);
+
+        // Initialize table state for this id
+        tableState[id] = {
+          headers: [],
+          rowsOriginal: [],
+          sort: { key: "Place", dir: "asc" },
+        };
+      }
+
+      // ---- Table rendering (unchanged logic, now dynamic key) ----
+
       function renderTable(headers, data, headerId, bodyId, tableKey) {
         const theadTr = document.getElementById(headerId);
         const tbody = document.getElementById(bodyId);
+
+        if (!theadTr || !tbody) return;
 
         theadTr.innerHTML = "";
         tbody.innerHTML = "";
@@ -278,51 +315,50 @@
             "px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 select-none",
             "cursor-pointer",
             "hover:text-gray-800",
-            "sticky top-0 bg-gray-50 z-10 group", // Make the header sticky per column and set up the group
+            "sticky top-0 bg-gray-50 z-10 group",
           ].join(" ");
           th.setAttribute("data-key", h);
           th.setAttribute("role", "columnheader");
 
-          // Label + sort indicator
           const wrap = document.createElement("div");
           wrap.className = "flex items-center gap-1";
           const label = document.createElement("span");
           label.textContent = h;
           wrap.appendChild(label);
 
-          // Sort icon for unsorted columns: faded by default, show on hover
           const isSorted = currentSort.key === h;
           const iconSpan = document.createElement("span");
           iconSpan.className = isSorted
             ? "ml-1 mt-1 text-gray-500 opacity-100"
             : "ml-1 mt-1 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity";
+
           iconSpan.setHTMLUnsafe(
             isSorted
               ? currentSort.dir === "asc"
-                ? `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
-  <path stroke-linecap="round" stroke-linejoin="round" d="M3 4.5h14.25M3 9h9.75M3 13.5h9.75m4.5-4.5v12m0 0-3.75-3.75M17.25 21 21 17.25" />
-</svg>
-`
-                : `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
-  <path stroke-linecap="round" stroke-linejoin="round" d="M3 4.5h14.25M3 9h9.75M3 13.5h5.25m5.25-.75L17.25 9m0 0L21 12.75M17.25 9v12" />
-</svg>
-`
-              : `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
-  <path stroke-linecap="round" stroke-linejoin="round" d="M3 4.5h14.25M3 9h9.75M3 13.5h5.25m5.25-.75L17.25 9m0 0L21 12.75M17.25 9v12" />
-</svg>
-`,
-          ); // Show "▲" as "sortable"
-
-          if (!isSorted) {
-            // For unsorted columns, change icon to ▼ on hover if previous direction was desc
-            // (Optional – keep as "▲" always for simplicity)
-          }
+                ? `<svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                    viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+                    class="size-4">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M3 4.5h14.25M3 9h9.75M3 13.5h9.75m4.5-4.5v12m0 0-3.75-3.75M17.25 21 21 17.25" />
+                  </svg>`
+                : `<svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                    viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+                    class="size-4">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M3 4.5h14.25M3 9h9.75M3 13.5h5.25m5.25-.75L17.25 9m0 0L21 12.75M17.25 9v12" />
+                  </svg>`
+              : `<svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                  viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+                  class="size-4">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M3 4.5h14.25M3 9h9.75M3 13.5h5.25m5.25-.75L17.25 9m0 0L21 12.75M17.25 9v12" />
+                </svg>`
+          );
 
           wrap.appendChild(iconSpan);
           th.appendChild(wrap);
           theadTr.appendChild(th);
 
-          // Click to sort
           th.addEventListener("click", () => {
             const prev = tableState[tableKey].sort;
             const nextDir =
@@ -331,7 +367,7 @@
             const sorted = sortRows(
               tableState[tableKey].rowsOriginal,
               h,
-              nextDir,
+              nextDir
             );
             renderTable(headers, sorted, headerId, bodyId, tableKey);
             applySearch();
@@ -365,7 +401,7 @@
         if (tbody.children.length === 0) {
           const noRow = document.createElement("tr");
           const td = document.createElement("td");
-          td.colSpan = headers.length;
+          td.colSpan = headers.length || 1;
           td.className = "text-center py-4 text-gray-500";
           td.textContent = "No results found for your search.";
           noRow.appendChild(td);
@@ -373,7 +409,8 @@
         }
       }
 
-      // Load CSV as tab-delimited and set default sort to Place asc
+      // ---- CSV loading ----
+
       function loadCSV(file, headerId, bodyId) {
         const tableKey = headerId.replace(/Header$/, "");
         Papa.parse(file, {
@@ -407,21 +444,27 @@
               [{ Error: "Failed to load data" }],
               headerId,
               bodyId,
-              tableKey,
+              tableKey
             );
           },
         });
       }
 
-      // Search across active tab
+      // ---- Search across active tab ----
+
       function applySearch() {
-        const value = (document.getElementById("searchInput").value || "")
-          .toLowerCase()
-          .trim();
+        const inputEl = document.getElementById("searchInput");
+        if (!inputEl) return;
+
+        const value = (inputEl.value || "").toLowerCase().trim();
         const activePanel = document.querySelector(".tab-panel:not(.hidden)");
         if (!activePanel) return;
         const tbody = activePanel.querySelector("tbody");
-        const rows = Array.from(tbody.querySelectorAll("tr"));
+        if (!tbody) return;
+
+        const rows = Array.from(tbody.querySelectorAll("tr")).filter(
+          (tr) => !tr.classList.contains("no-results-message")
+        );
 
         let visibleCount = 0;
         rows.forEach((tr) => {
@@ -435,12 +478,9 @@
         const prevNoResults = tbody.querySelector(".no-results-message");
         if (prevNoResults) prevNoResults.remove();
 
-        if (visibleCount === 0) {
-          // Count columns by checking the first header in thead; fallback if not found
-          let colCount = tbody
-            .closest("table")
-            .querySelectorAll("thead tr th").length;
-          if (!colCount) colCount = rows[0]?.children.length || 1;
+        if (visibleCount === 0 && rows.length > 0) {
+          let colCount =
+            tbody.closest("table")?.querySelectorAll("thead tr th").length || 1;
           const noRow = document.createElement("tr");
           noRow.className = "no-results-message";
           const td = document.createElement("td");
@@ -452,10 +492,11 @@
         }
       }
 
-      // On tab change, reset sort to default and re-render the table
+      // ---- Sort reset on tab change ----
+
       function resetSortOnTabChange(targetKey) {
         const st = tableState[targetKey];
-        if (!st.headers.length || !st.rowsOriginal.length) return;
+        if (!st || !st.headers.length || !st.rowsOriginal.length) return;
         const defaultKey = st.headers.includes("Place")
           ? "Place"
           : st.headers[0];
@@ -466,12 +507,13 @@
           sorted,
           targetKey + "Header",
           targetKey + "Body",
-          targetKey,
+          targetKey
         );
         applySearch();
       }
 
-      // Simple tab switching with sort reset
+      // ---- Tab setup (after dynamic creation) ----
+
       function setupTabs() {
         const buttons = document.querySelectorAll(".tab-btn");
         const panels = document.querySelectorAll(".tab-panel");
@@ -495,19 +537,19 @@
             const panel = document.getElementById(target);
             if (panel) panel.classList.remove("hidden");
 
-            // Reset sort to default for the new tab
             resetSortOnTabChange(target);
-
-            // Re-apply search on tab change
             applySearch();
           });
         });
       }
 
-      // Wire search
+      // ---- Search wiring ----
+
       function setupSearch() {
         const input = document.getElementById("searchInput");
         const clearBtn = document.getElementById("clearSearchBtn");
+        if (!input || !clearBtn) return;
+
         function toggleClearBtn() {
           clearBtn.style.display = input.value ? "" : "none";
         }
@@ -524,13 +566,59 @@
         toggleClearBtn();
       }
 
-      // Initial load
+      // ---- Load meta.json & bootstrap everything ----
+
+      async function loadEventMetaAndData() {
+        try {
+          const resp = await fetch(EVENT_BASE_PATH + "/meta.json");
+          if (!resp.ok) throw new Error("Failed to load meta.json");
+          const meta = await resp.json();
+
+          // Header
+          renderEventHeader(meta);
+
+          // Tabs & panels
+          const files = Array.isArray(meta.files) ? meta.files : [];
+          if (!files.length) {
+            const header = document.getElementById("eventHeader");
+            const p = document.createElement("p");
+            p.className = "mt-2 text-sm text-red-600";
+            p.textContent = "No result files configured for this event.";
+            header.appendChild(p);
+            return;
+          }
+
+          files.forEach((fileObj, index) => {
+            const id = slugify(fileObj.name || `tab-${index + 1}`);
+            const label = fileObj.name || `Tab ${index + 1}`;
+            const isActive = index === 0;
+            createTabAndPanel(id, label, isActive);
+
+            const csvPath = EVENT_BASE_PATH + "/" + fileObj.file;
+            loadCSV(csvPath, id + "Header", id + "Body");
+          });
+
+          // After tabs and panels are in the DOM, wire interactions
+          setupTabs();
+          setupSearch();
+        } catch (err) {
+          const header = document.getElementById("eventHeader");
+          header.innerHTML = "";
+          const title = document.createElement("h1");
+          title.className = "text-3xl font-bold text-red-700";
+          title.textContent = "Unable to load event data";
+          const msg = document.createElement("p");
+          msg.className = "mt-1 text-gray-600 text-sm";
+          msg.textContent = "Please check that the event metadata is available.";
+          header.appendChild(title);
+          header.appendChild(msg);
+          // Still set up search so the UI doesn't break
+          setupSearch();
+        }
+      }
+
       document.addEventListener("DOMContentLoaded", () => {
-        setupTabs();
-        setupSearch();
-        loadCSV(files.teams, "teamsHeader", "teamsBody");
-        loadCSV(files.singles, "singlesHeader", "singlesBody");
-        loadCSV(files.scratch, "scratchHeader", "scratchBody");
+        loadEventMetaAndData();
       });
     </script>
   </body>

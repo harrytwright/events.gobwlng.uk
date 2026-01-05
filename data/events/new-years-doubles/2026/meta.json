@@ -1,0 +1,23 @@
+{
+  "format": "doubles-reentry",
+  "type": "handicap",
+  "pattern": "Wednesday 4's",
+  "name": "Nearly New Years Doubles 2026",
+  "dates": [
+    "03/01/2025",
+    "04/01/2025"
+  ],
+  "files": [
+    {
+      "name": "Results",
+      "file": "results.csv"
+    },
+    {
+      "name": "Singles",
+      "file": "singles.csv"
+    }, {
+      "name": "Scratch Pot",
+      "file": "scratch-pot.csv"
+    }
+  ]
+}
