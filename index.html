@@ -47,7 +47,8 @@
         }
         .tab-btn,
         #searchInput,
-        #clearSearchBtn {
+        #clearSearchBtn,
+        .print-hide {
           display: none !important;
         }
         .tab-panel.hidden {
@@ -127,6 +128,11 @@
           <!-- Tab panels will be injected from meta.json -->
         </div>
       </section>
+
+      <!-- Footer -->
+      <footer id="eventFooter" class="mt-4 px-4 sm:px-6 py-6">
+        <!-- Footer content will be injected from meta.json -->
+      </footer>
     </main>
 
     <script>
@@ -337,6 +343,54 @@
           `;
           header.appendChild(dateRow);
         }
+      }
+
+      // ---- Rendering: event footer from meta.json ----
+
+      function formatLastUpdated(timestamp) {
+        if (!timestamp) return new Date().toLocaleString('en-GB', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+        return new Date(timestamp).toLocaleString('en-GB', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      }
+
+      function renderEventFooter(meta) {
+        const footer = document.getElementById("eventFooter");
+        footer.innerHTML = "";
+
+        // Top: Organizer and last updated (stacked, left-aligned)
+        const infoSection = document.createElement("div");
+        infoSection.className = "mb-6 text-sm text-gray-600";
+
+        const organizerName = meta.organizer || "Tournament Organiser";
+        const organizerLine = document.createElement("p");
+        organizerLine.innerHTML = `Organised by: <span class="font-medium">${organizerName}</span>`;
+        infoSection.appendChild(organizerLine);
+
+        const updatedLine = document.createElement("p");
+        updatedLine.className = "mt-1";
+        updatedLine.innerHTML = `Last updated: <span class="font-medium">${formatLastUpdated(meta.lastUpdated)}</span>`;
+        infoSection.appendChild(updatedLine);
+
+        footer.appendChild(infoSection);
+
+        // Bottom: Copyright/Attribution (centered, static)
+        const bottomRow = document.createElement("div");
+        bottomRow.className = "text-center text-xs text-gray-500 border-t border-gray-200 pt-4";
+
+        const currentYear = new Date().getFullYear();
+        bottomRow.innerHTML = `<p>© ${currentYear} GoBowling Shipley Lanes • Built with ❤️ for bowling</p>`;
+        footer.appendChild(bottomRow);
       }
 
       // ---- Tabs & panels from meta.json ----
@@ -734,6 +788,9 @@
 
           // Header
           renderEventHeader(meta);
+
+          // Footer
+          renderEventFooter(meta);
 
           // Tabs & panels
           const files = Array.isArray(meta.files) ? meta.files : [];
