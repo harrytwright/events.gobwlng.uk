@@ -3,6 +3,16 @@
   const safeGet = (obj, key) => obj[key] ?? obj[key?.trim?.()] ?? '';
   const pageTitle = meta.name || 'Tournament Results';
   const pageDescription = meta.description || `Results for ${meta.name || 'bowling tournament'}`;
+  const sluggifiedTitle = slugify(meta.name || 'tournament');
+
+  function slugify(str) {
+    return String(str)
+            .toLowerCase()
+            .trim()
+            .replace(/['"]/g, "")
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/(^-|-$)+/g, "");
+  }
 %>
 <!doctype html>
 <html lang="en">
@@ -11,6 +21,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title><%= pageTitle %></title>
     <meta name="description" content="<%= pageDescription %>">
+    <link rel="icon" href="/assets/favicon.ico" sizes="any">
+    <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
+    <link rel="icon" type="image/png" sizes="96x96" href="/assets/favicon-96x96.png">
+    <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+    <link rel="mask-icon" href="/assets/logo-2-masked.svg" color="#1d4ed8">
+    <link rel="manifest" href="/assets/site.webmanifest">
+    <meta name="theme-color" content="#efefef">
     <meta property="og:title" content="<%= pageTitle %>">
     <meta property="og:description" content="<%= pageDescription %>">
     <meta property="og:type" content="website">
@@ -19,7 +36,13 @@
       <meta property="og:url" content="<%= pageUrl %>">
       <link rel="canonical" href="<%= pageUrl %>">
     <% } %>
-    <meta name="twitter:card" content="summary">
+    <% if (ogImageUrl) { %>
+      <meta property="og:image" content="<%= ogImageUrl %>">
+      <meta property="og:image:width" content="1200">
+      <meta property="og:image:height" content="630">
+      <meta name="twitter:image" content="<%= ogImageUrl %>">
+    <% } %>
+    <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="<%= pageTitle %>">
     <meta name="twitter:description" content="<%= pageDescription %>">
     <link rel="stylesheet" href="/style/index.css" />
@@ -76,7 +99,7 @@
       }
     </style>
   </head>
-  <body class="bg-gray-50">
+  <body class="bg-pin">
     <%- await include('../partials/site-header') %>
 
     <!-- Page Heading -->
@@ -86,7 +109,7 @@
         <nav class="text-sm mb-4" aria-label="Breadcrumb">
           <ol class="flex items-center gap-2">
             <li>
-              <a href="/" class="text-blue-600 hover:text-blue-700 transition-colors">Home</a>
+              <a href="/" class="text-deep-blue-800 hover:text-deep-blue-950 transition-colors">Home</a>
             </li>
             <li class="text-gray-400" aria-hidden="true">/</li>
             <li class="text-gray-600" aria-current="page"><%= meta.name || 'Tournament Results' %></li>
@@ -104,8 +127,8 @@
             <!-- Badges -->
             <div class="flex flex-wrap gap-4 mb-3">
               <% if (meta.format) { %>
-                <span class="inline-flex items-center gap-1.5 text-xs text-gray-600 font-semibold">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-3.5">
+                <span class="inline-flex items-center gap-1.5 text-sm text-gray-600 font-semibold">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
                   </svg>
                   <span><%= getDisplayName(meta.format, formatDisplayNames) %></span>
@@ -113,8 +136,8 @@
               <% } %>
 
               <% if (meta.type) { %>
-                <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-600">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-3.5">
+                <span class="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-600">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z" />
                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6Z" />
                   </svg>
@@ -123,8 +146,8 @@
               <% } %>
 
               <% if (meta.category) { %>
-                <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-600">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-3.5">
+                <span class="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-600">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Zm6-10.125a1.875 1.875 0 1 1-3.75 0 1.875 1.875 0 0 1 3.75 0Zm1.294 6.336a6.721 6.721 0 0 1-3.17.789 6.721 6.721 0 0 1-3.168-.789 3.376 3.376 0 0 1 6.338 0Z" />
                   </svg>
                   <span><%= getDisplayName(meta.category, categoryDisplayNames) %></span>
@@ -132,8 +155,8 @@
               <% } %>
 
               <% if (meta.pattern) { %>
-                <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-600">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-3.5">
+                <span class="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-600">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4.098 19.902a3.75 3.75 0 0 0 5.304 0l6.401-6.402M6.75 21A3.75 3.75 0 0 1 3 17.25V4.125C3 3.504 3.504 3 4.125 3h5.25c.621 0 1.125.504 1.125 1.125v4.072M6.75 21a3.75 3.75 0 0 0 3.75-3.75V8.197M6.75 21h13.125c.621 0 1.125-.504 1.125-1.125v-5.25c0-.621-.504-1.125-1.125-1.125h-4.072M10.5 8.197l2.88-2.88c.438-.439 1.15-.439 1.59 0l3.712 3.713c.44.44.44 1.152 0 1.59l-2.879 2.88M6.75 17.25h.008v.008H6.75v-.008Z" />
                   </svg>
                   <span><%= meta.pattern %></span>
@@ -142,8 +165,8 @@
 
               <!-- Dates -->
               <% if (meta.dates && meta.dates.length) { %>
-                <div class="flex items-center gap-1.5 text-xs font-semibold text-gray-600">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-3.5 text-gray-500">
+                <div class="flex items-center gap-1.5 text-sm font-semibold text-gray-600">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4 text-gray-500">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z" />
                   </svg>
                   <span><%= formatDateRange(meta.dates) %></span>
@@ -155,6 +178,14 @@
           <!-- Right: Actions (placeholder for future) -->
           <div class="flex gap-2 md:ml-4">
             <!-- Future: Print, Export, Share buttons -->
+            <div class="mt-6">
+              <button id="shareBtn" type="button" class="hidden cursor-pointer items-center rounded-md bg-white px-3 py-2 text-sm font-semibold  shadow-xs inset-ring inset-ring-gray-300 hover:bg-gray-50">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4 mr-1.5 -ml-0.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z" />
+                </svg>
+                Share
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -170,7 +201,7 @@
             <nav id="tabsNav" class="-mb-px flex gap-4" role="tablist" aria-label="Results tabs">
               <% tabs.forEach((tab, index) => { %>
                 <button
-                  class="tab-btn whitespace-nowrap border-b-2 px-3 md:px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 rounded-t-md <%= tab.isActive ? 'text-blue-600 border-blue-600 hover:text-blue-600 hover:border-blue-600' : 'text-gray-500 hover:text-gray-700 hover:border-gray-300 border-transparent' %>"
+                  class="tab-btn whitespace-nowrap border-b-2 px-3 md:px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-firebrick focus-visible:ring-offset-2 rounded-t-md cursor-pointer <%= tab.isActive ? 'text-deep-blue-800 border-deep-blue-800 hover:text-deep-blue-800 hover:border-deep-blue-800' : 'text-gray-500 hover:text-gray-700 hover:border-gray-300 border-transparent' %>"
                   data-tab-target="<%= tab.id %>"
                   aria-selected="<%= tab.isActive ? 'true' : 'false' %>"
                   role="tab"
@@ -186,7 +217,7 @@
                 id="searchInput"
                 type="text"
                 placeholder="Search for a player or team..."
-                class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-base md:text-sm placeholder:text-gray-500 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-base md:text-sm placeholder:text-gray-500 shadow-sm focus:outline-none focus:ring-1 focus:ring-firebrick focus:border-firebrick transition-colors"
               />
               <button
                 id="clearSearchBtn"
@@ -519,11 +550,97 @@
         toggleClearBtn();
       }
 
+      // ---- Share setup ----
+
+      async function createShareLink({ url, campaign, contentId, channelHint }) {
+        const res = await fetch("/api/share/create", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ url, campaign, contentId, channelHint })
+        });
+
+        if (!res.ok) {
+          const msg = await res.text().catch(() => "");
+          throw new Error(`Create link failed: ${res.status} ${msg}`);
+        }
+
+        return res.json(); // { token, shareUrl }
+      }
+
+      async function copyToClipboard(text) {
+        await navigator.clipboard.writeText(text);
+      }
+
+      const isWebShareSupported = () => {
+        return window.navigator.canShare && window.navigator.share;
+      };
+
+      function canonicalizeUrl(href) {
+        const u = new URL(href);
+        // Strip common tracking params to avoid stacking
+        ["utm_source","utm_medium","utm_campaign","utm_content","ref","ch"].forEach(p => u.searchParams.delete(p));
+        // If your page uses meaningful params (like ?division=A), keep them!
+        // Otherwise you can also do: u.search = "";
+        return u.toString();
+      }
+
+      function setupShare() {
+        const shareButton = document.getElementById('shareBtn');
+
+        if (!shareButton || !isWebShareSupported()) return;
+
+        shareButton.classList.remove('hidden');
+        shareButton.classList.add('inline-flex');
+
+        shareButton.addEventListener('click', async () => {
+          const canonicalUrl = canonicalizeUrl(window.location.href); // or derive per content
+          const campaign = "results_share";
+          const contentId = "results_<%- sluggifiedTitle %>"; // optional
+
+          try {
+            // You *can’t* reliably know the final share target app,
+            // but you can pass a hint like "share_sheet" for reporting.
+            const { shareUrl } = await createShareLink({
+              url: canonicalUrl,
+              campaign,
+              contentId,
+              channelHint: "share_sheet"
+            });
+
+            const shareData = {
+              title: "<%- meta.title %>",
+              text: "<%- meta.description %>",
+              url: shareUrl
+            };
+
+            if (navigator.share) {
+              await navigator.share(shareData);
+            } else {
+              await copyToClipboard(shareUrl);
+              alert("Link copied!");
+            }
+          } catch (err) {
+            // If user cancels the share sheet, it throws AbortError
+            if (err?.name === "AbortError") return;
+
+            console.error(err);
+            // Final fallback: copy the canonical URL (or show an error)
+            try {
+              await copyToClipboard(canonicalUrl);
+              alert("Couldn’t create a share link. Copied a fallback link instead.");
+            } catch {
+              alert("Couldn’t share right now.");
+            }
+          }
+        });
+      }
+
       // ---- Initialize ----
 
       document.addEventListener('DOMContentLoaded', () => {
         setupTabs();
         setupSearch();
+        setupShare();
       });
     </script>
   </body>

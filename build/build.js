@@ -25,6 +25,7 @@ import {
   getDisplayName,
   formatLastUpdated,
 } from "./utils/helpers.js";
+import { generateOgImages } from "./utils/og-images.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -123,6 +124,7 @@ async function processEvent(event) {
       lockfile,
       siteUrl: SITE_URL,
       pageUrl: `${SITE_URL}/events/${event.slug}/${event.year}/`,
+      ogImageUrl: `${SITE_URL}/og/${event.slug}/${event.year}.png`,
       // Helper functions and mappings for the template
       formatDisplayNames,
       typeDisplayNames,
@@ -149,6 +151,41 @@ async function processEvent(event) {
 
   // Copy lockfile to dist
   await fs.copyFile(sourceLockfilePath, path.join(outputDir, "meta-lock.json"));
+
+  const badges = [];
+  if (meta.format) {
+    badges.push({ type: 'format', label: getDisplayName(meta.format, formatDisplayNames) });
+  }
+  if (meta.type) {
+    badges.push({ type: 'type', label: getDisplayName(meta.type, typeDisplayNames) });
+  }
+  if (meta.category) {
+    badges.push({ type: 'category', label: getDisplayName(meta.category, categoryDisplayNames) });
+  }
+  if (meta.pattern) {
+    badges.push({ type: 'pattern', label: meta.pattern });
+  }
+  const dateRange = formatDateRange(meta.dates);
+  if (dateRange) {
+    badges.push({ type: 'date', label: dateRange });
+  }
+
+  const ogData = {
+    name: meta.name || "Tournament Results",
+    description: meta.description || "",
+    badges,
+    slug: event.slug,
+    year: event.year,
+    lastUpdated: lockfile?.lastChangeAt || lockfile?.generatedAt || null,
+  };
+
+  const ogDir = path.join(DIST_DIR, "og-data", "events", event.slug);
+  await fs.mkdir(ogDir, { recursive: true });
+  await fs.writeFile(
+    path.join(ogDir, `${event.year}.json`),
+    JSON.stringify(ogData, null, 2),
+    "utf-8",
+  );
 
   console.log(`  -> ${outputDir}/index.html`);
 
@@ -187,6 +224,7 @@ async function generateIndexPage(eventsData) {
       formatLastUpdated,
       siteUrl: SITE_URL,
       pageUrl: `${SITE_URL}/`,
+      ogImageUrl: `${SITE_URL}/og/index.png`,
     },
     { async: true },
   );
@@ -207,6 +245,7 @@ async function generate404Page() {
       currentYear: new Date().getFullYear(),
       siteUrl: SITE_URL,
       pageUrl: `${SITE_URL}/404.html`,
+      ogImageUrl: `${SITE_URL}/og/index.png`,
     },
     { async: true },
   );
@@ -268,6 +307,29 @@ async function generateSitemapAndRobots(eventsData) {
 }
 
 /**
+ * Generate OG index data.
+ */
+async function generateOgIndexData(eventsData) {
+  console.log("Generating OG index data...");
+
+  const latestEvent = eventsData[0];
+  const ogIndex = {
+    eventCount: eventsData.length,
+    latestEventName: latestEvent?.meta?.name || null,
+    latestEventYear: latestEvent?.year || null,
+  };
+
+  const ogDir = path.join(DIST_DIR, "og-data");
+  await fs.mkdir(ogDir, { recursive: true });
+  await fs.writeFile(
+    path.join(ogDir, "index.json"),
+    JSON.stringify(ogIndex, null, 2),
+    "utf-8",
+  );
+  console.log("  -> dist/og-data/index.json");
+}
+
+/**
  * Build Tailwind CSS via PostCSS.
  */
 async function buildStyles() {
@@ -311,6 +373,27 @@ async function copyStaticFiles() {
       throw err;
     }
     console.warn("  ! static directory not found, skipping");
+  }
+
+  const fallbackAssets = [
+    {
+      src: path.join(STATIC_DIR, "assets", "favicon.ico"),
+      dest: path.join(DIST_DIR, "favicon.ico"),
+    },
+    {
+      src: path.join(STATIC_DIR, "assets", "site.webmanifest"),
+      dest: path.join(DIST_DIR, "site.webmanifest"),
+    },
+  ];
+
+  for (const asset of fallbackAssets) {
+    try {
+      await fs.copyFile(asset.src, asset.dest);
+    } catch (err) {
+      if (err.code !== "ENOENT") {
+        throw err;
+      }
+    }
   }
 
   // Copy _headers
@@ -359,13 +442,19 @@ async function build() {
     // Step 5: Generate 404 page
     await generate404Page();
 
-    // Step 6: Generate sitemap and robots
+    // Step 6: Generate OG index data
+    await generateOgIndexData(eventsData);
+
+    // Step 7: Generate OG images
+    await generateOgImages(DIST_DIR, eventsData);
+
+    // Step 8: Generate sitemap and robots
     await generateSitemapAndRobots(eventsData);
 
-    // Step 7: Copy static files
+    // Step 9: Copy static files
     await copyStaticFiles();
 
-    // Step 8: Build styles
+    // Step 10: Build styles
     await buildStyles();
 
     const duration = ((Date.now() - startTime) / 1000).toFixed(2);

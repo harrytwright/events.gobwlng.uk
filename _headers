@@ -21,3 +21,7 @@
 # Cache index page slightly shorter for fresher event listings
 /index.html
   Cache-Control: public, max-age=1800, must-revalidate
+
+# Cache OG images (24 hours - generated dynamically)
+/og/*
+  Cache-Control: public, max-age=86400, must-revalidate
