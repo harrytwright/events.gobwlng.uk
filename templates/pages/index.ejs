@@ -186,6 +186,12 @@
                 <% } %>
               </div>
 
+              <% if (event.lockfile?.lastChangeAt || event.lockfile?.generatedAt) { %>
+                <p class="text-xs text-gray-500">
+                  Updated <%= formatLastUpdated(event.lockfile?.lastChangeAt || event.lockfile?.generatedAt) %>
+                </p>
+              <% } %>
+
               <div class="mt-4 flex items-center text-blue-600 text-sm font-medium">
                 <span>View Results</span>
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 ml-1">

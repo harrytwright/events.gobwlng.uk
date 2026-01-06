@@ -184,6 +184,7 @@ async function generateIndexPage(eventsData) {
       formatDateRange,
       getDisplayName,
       categoryDisplayNames,
+      formatLastUpdated,
       siteUrl: SITE_URL,
       pageUrl: `${SITE_URL}/`,
     },
