@@ -42,9 +42,10 @@ const postcssPlugins = Array.isArray(postcssConfig?.plugins)
   : Object.values(postcssConfig?.plugins ?? {});
 const DEFAULT_SITE_URL = `http://localhost:${process.env.PORT || 3000}`;
 const RAW_SITE_URL = process.env.SITE_URL || process.env.CF_PAGES_URL;
-const SITE_URL = (RAW_SITE_URL && RAW_SITE_URL.trim())
-  ? RAW_SITE_URL.replace(/\/$/, "")
-  : DEFAULT_SITE_URL;
+const SITE_URL =
+  RAW_SITE_URL && RAW_SITE_URL.trim()
+    ? RAW_SITE_URL.replace(/\/$/, "")
+    : DEFAULT_SITE_URL;
 
 /**
  * Clean and recreate the dist directory.
@@ -154,26 +155,69 @@ async function processEvent(event) {
 
   const badges = [];
   if (meta.format) {
-    badges.push({ type: 'format', label: getDisplayName(meta.format, formatDisplayNames) });
+    badges.push({
+      type: "format",
+      label: getDisplayName(meta.format, formatDisplayNames),
+    });
   }
   if (meta.type) {
-    badges.push({ type: 'type', label: getDisplayName(meta.type, typeDisplayNames) });
+    badges.push({
+      type: "type",
+      label: getDisplayName(meta.type, typeDisplayNames),
+    });
   }
   if (meta.category) {
-    badges.push({ type: 'category', label: getDisplayName(meta.category, categoryDisplayNames) });
+    badges.push({
+      type: "category",
+      label: getDisplayName(meta.category, categoryDisplayNames),
+    });
   }
   if (meta.pattern) {
-    badges.push({ type: 'pattern', label: meta.pattern });
+    badges.push({ type: "pattern", label: meta.pattern });
   }
   const dateRange = formatDateRange(meta.dates);
   if (dateRange) {
-    badges.push({ type: 'date', label: dateRange });
+    badges.push({ type: "date", label: dateRange });
+  }
+
+  // Extract top 3 from results.csv for OG image podium
+  const podium = [];
+  const resultsFileConfig = meta.files?.find((f) => f.file === "results.csv");
+  if (resultsFileConfig) {
+    const resultsTab = tabs.find((t) => t.name === resultsFileConfig.name);
+    if (resultsTab && resultsTab.rows.length > 0) {
+      const top3 = resultsTab.rows.slice(0, 3);
+      for (const row of top3) {
+        // Collect all player columns dynamically (Player 1, Player 2, etc.)
+        const players = Object.keys(row)
+          .filter((k) => k.startsWith("Player"))
+          .sort()
+          .map((k) => row[k])
+          .filter(Boolean)
+          .join(" & ");
+
+        // Score priority: HCP Series > Scratch Series > Scratch > Score
+        const score =
+          row["HCP Series"] ||
+          row["Scratch Series"] ||
+          row["Scratch"] ||
+          row["Score"] ||
+          "";
+
+        podium.push({
+          place: parseInt(row["Place"], 10) || podium.length + 1,
+          players: players || row["Team"] || "Unknown",
+          score: String(score),
+        });
+      }
+    }
   }
 
   const ogData = {
     name: meta.name || "Tournament Results",
     description: meta.description || "",
     badges,
+    podium,
     slug: event.slug,
     year: event.year,
     lastUpdated: lockfile?.lastChangeAt || lockfile?.generatedAt || null,
@@ -267,7 +311,8 @@ async function generateSitemapAndRobots(eventsData) {
   const urls = [
     { loc: `${SITE_URL}/`, lastmod: new Date().toISOString() },
     ...eventsData.map((event) => {
-      const lastChange = event.lockfile?.lastChangeAt || event.lockfile?.generatedAt;
+      const lastChange =
+        event.lockfile?.lastChangeAt || event.lockfile?.generatedAt;
       const lastmod = lastChange ? new Date(lastChange).toISOString() : null;
       return {
         loc: `${SITE_URL}/events/${event.slug}/${event.year}/`,
@@ -277,8 +322,8 @@ async function generateSitemapAndRobots(eventsData) {
   ];
 
   const sitemap = [
-    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
-    "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">",
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
     ...urls.map((url) => {
       const parts = [`  <url>`, `    <loc>${url.loc}</loc>`];
       if (url.lastmod) {

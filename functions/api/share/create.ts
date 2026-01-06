@@ -6,15 +6,14 @@ type ShareCreateBody = {
   channelHint?: string; // e.g. "share_sheet", "copy", "sms"
 };
 
-const ALLOWED_HOSTS = new Set([
-  "events.gobwlng.uk",
-  "localhost"
-]);
+const ALLOWED_HOSTS = new Set(["events.gobwlng.uk", "localhost"]);
 
 export const onRequestPost: PagesFunction<{
   LINKS: KVNamespace;
 }> = async ({ request, env }) => {
-  const body = (await request.json().catch(() => null)) as ShareCreateBody | null;
+  const body = (await request
+    .json()
+    .catch(() => null)) as ShareCreateBody | null;
   if (!body?.url) return new Response("Missing url", { status: 400 });
 
   let dest: URL;
@@ -24,7 +23,7 @@ export const onRequestPost: PagesFunction<{
     return new Response("Invalid url", { status: 400 });
   }
 
-  console.log(body, dest)
+  console.log(body, dest);
 
   // Prevent open redirects to arbitrary sites
   if (!ALLOWED_HOSTS.has(dest.hostname)) {
@@ -45,7 +44,7 @@ export const onRequestPost: PagesFunction<{
     campaign,
     contentId: contentId || null,
     sharerId,
-    createdAt: Date.now()
+    createdAt: Date.now(),
   });
 
   // Optionally expire old links (e.g. 90 days)

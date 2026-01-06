@@ -3,115 +3,115 @@
 @source "../../build/**/*.js";
 
 @theme {
-    /* Brand Colors */
-    --color-firebrick: #b22222;
-    --color-firebrick-dark: #8b1a1a;
-    --color-pin: #efefef;
-    --color-deep-blue: #516099;
-    --color-strike: #1a1a1a;
-    --color-slate: #394240;
-    --color-border: #d0d1c9;
-    /*--color-border: #444c56;*/
-    --color-inset: #f6f8fa;
-    --color-banner-warning: #fff8c5;
+  /* Brand Colors */
+  --color-firebrick: #b22222;
+  --color-firebrick-dark: #8b1a1a;
+  --color-pin: #efefef;
+  --color-deep-blue: #516099;
+  --color-strike: #1a1a1a;
+  --color-slate: #394240;
+  --color-border: #d0d1c9;
+  /*--color-border: #444c56;*/
+  --color-inset: #f6f8fa;
+  --color-banner-warning: #fff8c5;
 
-    /* Scaled Brand Colors */
-    --color-deep-blue-50: #f4f7fa;
-    --color-deep-blue-100: #e5eaf4;
-    --color-deep-blue-200: #d2dceb;
-    --color-deep-blue-300: #b3c5dd;
-    --color-deep-blue-400: #8ea7cc;
-    --color-deep-blue-500: #738bbe;
-    --color-deep-blue-600: #6075b0;
-    --color-deep-blue-700: #516099;
-    --color-deep-blue-800: #495484;
-    --color-deep-blue-900: #3e486a;
-    --color-deep-blue-950: #292e42;
-    --color-slate-50: #f6f7f7;
-    --color-slate-100: #e1e6e4;
-    --color-slate-200: #c3ccc9;
-    --color-slate-300: #9daba7;
-    --color-slate-400: #798884;
-    --color-slate-500: #5e6e6a;
-    --color-slate-600: #4a5754;
-    --color-slate-700: #394240;
-    --color-slate-800: #343b3a;
-    --color-slate-900: #2e3332;
-    --color-slate-950: #171c1a;
-    --color-firebrick-50: #fef2f2;
-    --color-firebrick-100: #fde3e3;
-    --color-firebrick-200: #fccccc;
-    --color-firebrick-300: #f9a8a8;
-    --color-firebrick-400: #f37676;
-    --color-firebrick-500: #e84b4b;
-    --color-firebrick-600: #d52d2d;
-    --color-firebrick-700: #b22222;
-    --color-firebrick-800: #942020;
-    --color-firebrick-900: #7b2121;
-    --color-firebrick-950: #430c0c;
+  /* Scaled Brand Colors */
+  --color-deep-blue-50: #f4f7fa;
+  --color-deep-blue-100: #e5eaf4;
+  --color-deep-blue-200: #d2dceb;
+  --color-deep-blue-300: #b3c5dd;
+  --color-deep-blue-400: #8ea7cc;
+  --color-deep-blue-500: #738bbe;
+  --color-deep-blue-600: #6075b0;
+  --color-deep-blue-700: #516099;
+  --color-deep-blue-800: #495484;
+  --color-deep-blue-900: #3e486a;
+  --color-deep-blue-950: #292e42;
+  --color-slate-50: #f6f7f7;
+  --color-slate-100: #e1e6e4;
+  --color-slate-200: #c3ccc9;
+  --color-slate-300: #9daba7;
+  --color-slate-400: #798884;
+  --color-slate-500: #5e6e6a;
+  --color-slate-600: #4a5754;
+  --color-slate-700: #394240;
+  --color-slate-800: #343b3a;
+  --color-slate-900: #2e3332;
+  --color-slate-950: #171c1a;
+  --color-firebrick-50: #fef2f2;
+  --color-firebrick-100: #fde3e3;
+  --color-firebrick-200: #fccccc;
+  --color-firebrick-300: #f9a8a8;
+  --color-firebrick-400: #f37676;
+  --color-firebrick-500: #e84b4b;
+  --color-firebrick-600: #d52d2d;
+  --color-firebrick-700: #b22222;
+  --color-firebrick-800: #942020;
+  --color-firebrick-900: #7b2121;
+  --color-firebrick-950: #430c0c;
 
-    /* Font Families */
-    --font-family-sans: 'Roboto', system-ui, -apple-system, sans-serif;
-    --font-family-display: 'Montserrat', system-ui, -apple-system, sans-serif;
+  /* Font Families */
+  --font-family-sans: "Roboto", system-ui, -apple-system, sans-serif;
+  --font-family-display: "Montserrat", system-ui, -apple-system, sans-serif;
 }
 
 /* CSS Custom Properties for brand colors (for use in custom CSS) */
 :root {
-    /* Primary Colors */
-    --color-firebrick: #b22222; /* Primary CTAs, brand red */
-    --color-firebrick-dark: #8b1a1a; /* Hover states */
-    --color-pin: #efefef; /* Background, off-white */
-    --color-white: #ffffff; /* Cards, text on dark */
-    --color-deep-blue: #516099; /* Navigation, headers */
-    --color-strike: #1a1a1a; /* Body text, dark UI */
-    --color-slate: #394240; /* Secondary text, borders */
-    --color-border: #d0d1c9;
-    --color-ring: #d0d1c9;
-    /*--color-border: #444c56;*/
-    --color-inset: #f6f8fa;
-    --color-banner-warning: #fff8c5;
+  /* Primary Colors */
+  --color-firebrick: #b22222; /* Primary CTAs, brand red */
+  --color-firebrick-dark: #8b1a1a; /* Hover states */
+  --color-pin: #efefef; /* Background, off-white */
+  --color-white: #ffffff; /* Cards, text on dark */
+  --color-deep-blue: #516099; /* Navigation, headers */
+  --color-strike: #1a1a1a; /* Body text, dark UI */
+  --color-slate: #394240; /* Secondary text, borders */
+  --color-border: #d0d1c9;
+  --color-ring: #d0d1c9;
+  /*--color-border: #444c56;*/
+  --color-inset: #f6f8fa;
+  --color-banner-warning: #fff8c5;
 
-    /* Scaled Brand Colors */
-    --color-deep-blue-50: #f4f7fa;
-    --color-deep-blue-100: #e5eaf4;
-    --color-deep-blue-200: #d2dceb;
-    --color-deep-blue-300: #b3c5dd;
-    --color-deep-blue-400: #8ea7cc;
-    --color-deep-blue-500: #738bbe;
-    --color-deep-blue-600: #6075b0;
-    --color-deep-blue-700: #516099;
-    --color-deep-blue-800: #495484;
-    --color-deep-blue-900: #3e486a;
-    --color-deep-blue-950: #292e42;
-    --color-slate-50: #f6f7f7;
-    --color-slate-100: #e1e6e4;
-    --color-slate-200: #c3ccc9;
-    --color-slate-300: #9daba7;
-    --color-slate-400: #798884;
-    --color-slate-500: #5e6e6a;
-    --color-slate-600: #4a5754;
-    --color-slate-700: #394240;
-    --color-slate-800: #343b3a;
-    --color-slate-900: #2e3332;
-    --color-slate-950: #171c1a;
-    --color-firebrick-50: #fef2f2;
-    --color-firebrick-100: #fde3e3;
-    --color-firebrick-200: #fccccc;
-    --color-firebrick-300: #f9a8a8;
-    --color-firebrick-400: #f37676;
-    --color-firebrick-500: #e84b4b;
-    --color-firebrick-600: #d52d2d;
-    --color-firebrick-700: #b22222;
-    --color-firebrick-800: #942020;
-    --color-firebrick-900: #7b2121;
-    --color-firebrick-950: #430c0c;
+  /* Scaled Brand Colors */
+  --color-deep-blue-50: #f4f7fa;
+  --color-deep-blue-100: #e5eaf4;
+  --color-deep-blue-200: #d2dceb;
+  --color-deep-blue-300: #b3c5dd;
+  --color-deep-blue-400: #8ea7cc;
+  --color-deep-blue-500: #738bbe;
+  --color-deep-blue-600: #6075b0;
+  --color-deep-blue-700: #516099;
+  --color-deep-blue-800: #495484;
+  --color-deep-blue-900: #3e486a;
+  --color-deep-blue-950: #292e42;
+  --color-slate-50: #f6f7f7;
+  --color-slate-100: #e1e6e4;
+  --color-slate-200: #c3ccc9;
+  --color-slate-300: #9daba7;
+  --color-slate-400: #798884;
+  --color-slate-500: #5e6e6a;
+  --color-slate-600: #4a5754;
+  --color-slate-700: #394240;
+  --color-slate-800: #343b3a;
+  --color-slate-900: #2e3332;
+  --color-slate-950: #171c1a;
+  --color-firebrick-50: #fef2f2;
+  --color-firebrick-100: #fde3e3;
+  --color-firebrick-200: #fccccc;
+  --color-firebrick-300: #f9a8a8;
+  --color-firebrick-400: #f37676;
+  --color-firebrick-500: #e84b4b;
+  --color-firebrick-600: #d52d2d;
+  --color-firebrick-700: #b22222;
+  --color-firebrick-800: #942020;
+  --color-firebrick-900: #7b2121;
+  --color-firebrick-950: #430c0c;
 }
 
 /* Base Styles */
 body {
-    font-family: var(--font-family-sans);
-    color: var(--color-strike);
-    background-color: var(--color-pin);
+  font-family: var(--font-family-sans);
+  color: var(--color-strike);
+  background-color: var(--color-pin);
 }
 
 /* Typography defaults */
@@ -121,6 +121,6 @@ h3,
 h4,
 h5,
 h6 {
-    font-family: var(--font-family-display);
-    color: var(--color-strike);
+  font-family: var(--font-family-display);
+  color: var(--color-strike);
 }

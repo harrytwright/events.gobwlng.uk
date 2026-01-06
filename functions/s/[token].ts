@@ -26,7 +26,8 @@ export const onRequestGet: PagesFunction<{
   dest.searchParams.set("utm_source", "app");
   dest.searchParams.set("utm_medium", ch);
   dest.searchParams.set("utm_campaign", link.campaign || "share");
-  if (link.contentId) dest.searchParams.set("utm_content", `content_${link.contentId}`);
+  if (link.contentId)
+    dest.searchParams.set("utm_content", `content_${link.contentId}`);
   dest.searchParams.set("ref", token);
 
   // Dedupe (optional)
@@ -52,15 +53,15 @@ export const onRequestGet: PagesFunction<{
   // ✅ Real analytics event (total + unique flag)
   env.SHARE_CLICKS.writeDataPoint({
     blobs: [
-      "share_click",                 // event name
-      token,                         // ref token
-      ch,                            // channel hint
-      link.campaign || "share",      // campaign
-      link.contentId || ""           // content id/slug
+      "share_click", // event name
+      token, // ref token
+      ch, // channel hint
+      link.campaign || "share", // campaign
+      link.contentId || "", // content id/slug
     ],
     doubles: [
-      isUnique ? 1 : 0,              // unique flag as 1/0
-      Date.now()                     // timestamp (optional, AE has time too)
+      isUnique ? 1 : 0, // unique flag as 1/0
+      Date.now(), // timestamp (optional, AE has time too)
     ],
   });
 
@@ -70,5 +71,7 @@ export const onRequestGet: PagesFunction<{
 async function sha256(input: string): Promise<string> {
   const data = new TextEncoder().encode(input);
   const digest = await crypto.subtle.digest("SHA-256", data);
-  return [...new Uint8Array(digest)].map(b => b.toString(16).padStart(2, "0")).join("");
+  return [...new Uint8Array(digest)]
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
 }
