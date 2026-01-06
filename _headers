@@ -1,10 +1,3 @@
-# Cache JSON and CSV files (5 minutes)
-/data/events/*/*.json
-  Cache-Control: public, max-age=300, must-revalidate
-
-/data/events/*/*.csv
-  Cache-Control: public, max-age=300, must-revalidate
-
 # Security headers for all pages
 /*
   X-Content-Type-Options: nosniff
@@ -13,6 +6,18 @@
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: geolocation=(), microphone=(), camera=()
 
-# Cache HTML with shorter duration
+# Cache HTML pages (1 hour - static, pre-built)
 /*.html
-  Cache-Control: public, max-age=60, must-revalidate
+  Cache-Control: public, max-age=3600, must-revalidate
+
+# Cache event pages
+/events/*/*.html
+  Cache-Control: public, max-age=3600, must-revalidate
+
+# Cache lockfiles (reference only, long cache)
+/events/*/*/meta-lock.json
+  Cache-Control: public, max-age=86400, must-revalidate
+
+# Cache index page slightly shorter for fresher event listings
+/index.html
+  Cache-Control: public, max-age=1800, must-revalidate

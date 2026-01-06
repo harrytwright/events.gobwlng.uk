@@ -4,36 +4,74 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-This is a static HTML-based bowling tournament results viewer. It displays tournament results from CSV files with dynamic sorting, searching, and tabbed navigation. The system is designed to be simple: no build step, no dependencies - just HTML, vanilla JavaScript, and CDN-loaded libraries.
+This is a build-time static site generator for bowling tournament results. It pre-renders HTML pages with embedded data from CSV files, providing sorting, searching, and tabbed navigation without runtime data fetching.
 
 ## Architecture
 
-### Single-Page Application Structure
+### Build-Time Static Generation
 
-The application consists of a single `index.html` file that:
+The system uses Node.js with EJS templates to generate static HTML at build time:
 
-- Loads tournament metadata from `meta.json`
-- Dynamically creates tabs based on the event configuration
-- Fetches and parses tab-separated CSV files using PapaParse
-- Renders sortable tables with client-side search functionality
+- **No runtime CSV fetching** - All data pre-baked into HTML
+- **Multi-event support** - Events listing page at `/` with cards for each event
+- **Git-based timestamps** - Lockfiles capture last modification from git history
+- **Clean output** - Only HTML and lockfiles in `dist/`, raw data stays in source
+
+### Project Structure
+
+```
+/
+  build/
+    build.js                # Main build script
+    utils/
+      discovery.js          # Event scanner
+      csv.js                # CSV parsing
+      git.js                # Git timestamp extraction
+      lockfile.js           # Lockfile generation
+      helpers.js            # Shared helper functions
+  templates/
+    layout.ejs              # Base layout (styles)
+    pages/
+      event.ejs             # Event results page
+      index.ejs             # Events listing homepage
+      404.ejs               # Error page
+  data/
+    events/
+      {slug}/{year}/
+        meta.json           # Event configuration
+        meta-lock.json      # Generated lockfile
+        *.csv               # Tab-separated results
+  dist/                     # Build output (gitignored)
+    index.html
+    404.html
+    _headers
+    events/
+      {slug}/{year}/
+        index.html          # Pre-rendered event page
+        meta-lock.json      # Copied lockfile
+  docs/
+    templates.md            # Template reference guide
+  package.json
+  wrangler.toml
+  _headers
+```
 
 ### Data Organization
 
-Event data is organized in the following structure:
+Event data lives in `data/events/{slug}/{year}/`:
 
 ```
-data/events/{event-name}/{year}/
+data/events/new-years-doubles/2026/
   ├── meta.json           # Event configuration
-  ├── results.csv         # Tab-separated results file
-  ├── singles.csv         # Tab-separated singles results
-  └── scratch-pot.csv     # Tab-separated scratch pot results
+  ├── meta-lock.json      # Generated at build time
+  ├── results.csv         # Tab-separated results
+  ├── singles.csv         # Tab-separated singles
+  └── scratch-pot.csv     # Tab-separated scratch pot
 ```
 
 **Important:** CSV files use **tab-separated** values (TSV format), not commas.
 
 ### Event Configuration (`meta.json`)
-
-The `meta.json` file defines the event and controls what tabs/data are displayed:
 
 ```json
 {
@@ -41,9 +79,8 @@ The `meta.json` file defines the event and controls what tabs/data are displayed
   "type": "handicap",
   "pattern": "Wednesday 4's",
   "name": "Nearly New Years Doubles 2026",
-  "dates": ["03/01/2025", "04/01/2025"],
-  "organizer": "Gobwlng Events",
-  "lastUpdated": "2025-01-04T18:30:00",
+  "dates": ["03/01/2026", "04/01/2026"],
+  "organizer": "Debbie Alderson, Harry Wright",
   "files": [
     { "name": "Results", "file": "results.csv" },
     { "name": "Singles", "file": "singles.csv" },
@@ -54,149 +91,162 @@ The `meta.json` file defines the event and controls what tabs/data are displayed
 
 Fields:
 
-- `format`: Tournament format slug (e.g., "doubles-reentry") - mapped to display name via `formatDisplayNames`
-- `type`: Tournament type slug (e.g., "handicap") - mapped to display name via `typeDisplayNames`
+- `format`: Tournament format slug → mapped to display name
+- `type`: Tournament type slug → mapped to display name
 - `pattern`: Bowling pattern name (displayed as-is)
 - `name`: Display name for the event
-- `dates`: Array of dates (formatted as dd/mm/yyyy)
-- `organizer`: Event organizer name (optional, defaults to "Tournament Organizer")
-- `lastUpdated`: ISO 8601 timestamp of last update (optional, defaults to current time)
-- `files`: Array of objects with `name` (tab label) and `file` (CSV filename)
+- `dates`: Array of dates (dd/mm/yyyy format)
+- `organizer`: Event organizer name(s)
+- `files`: Array of `{name, file}` objects defining tabs
 
-### CSV Data Format
+### Lockfile (`meta-lock.json`)
 
-**Doubles/Team Results:**
+Generated at build time with git-based timestamps:
 
-- Tab-separated values
-- Columns: Place, Team, Squad, Player 1, Player 2, Game 1, Game 2, Game 3, Scratch, HCP Series, Team HCP
+```json
+{
+  "generatedAt": "2026-01-06T09:28:04.402Z",
+  "lastChangeAt": "2026-01-06T00:07:18.000Z",
+  "lastChangeCommit": "2ba3ffd...",
+  "sourceFiles": {
+    "meta.json": { "lastModified": "..." },
+    "results.csv": { "lastModified": "..." }
+  }
+}
+```
 
-**Singles Results:**
+## Build System
 
-- Tab-separated values
-- Columns: Place, Squad, Player, HCP, Game 1, Game 2, Game 3, Scratch, HCP Series
+### Commands
 
-### Key JavaScript Components
+```bash
+npm run build   # Generate dist/ from templates and data
+npm run clean   # Remove dist/ directory
+```
 
-**Event Configuration:**
+### Build Process
 
-- `EVENT_BASE_PATH`: Points to the event data directory (currently hardcoded to `./data/events/new-years-doubles/2026`)
-- To add a new event, update this path or parameterize it via query string
+1. Clean `dist/` directory
+2. Discover events by scanning `data/events/*/*/meta.json`
+3. For each event:
+   - Parse CSV files (tab-separated)
+   - Sort by "Place" column by default
+   - Generate `meta-lock.json` with git timestamps
+   - Render EJS template with pre-baked data
+   - Write to `dist/events/{slug}/{year}/index.html`
+4. Generate events listing at `dist/index.html`
+5. Generate 404 page at `dist/404.html`
+6. Copy `_headers` to dist
 
-**Format & Type Display Mappings:**
+### Helper Functions (`build/utils/helpers.js`)
 
-- `formatDisplayNames`: Maps format slugs to display names (e.g., "doubles-reentry" → "Re-Entry Doubles")
-- `typeDisplayNames`: Maps type slugs to display names (e.g., "handicap" → "Handicap")
-- Easy to extend: add new slug→name mappings to these objects
-- Unmapped values default to "Unknown"
+Display name mappings:
 
-**Column Width Mapping:**
+- `formatDisplayNames`: Format slug → display name
+- `typeDisplayNames`: Type slug → display name
+- `columnWidthMap`: Column name → Tailwind width class
+- `numericHeaderHints`: Keywords indicating numeric columns
 
-- `columnWidthMap` defines minimum widths for each column type
-- Uses only `min-w-*` classes (no fixed widths) for flexible, content-based sizing
-- Columns auto-expand to fit content while maintaining minimum sizes
-- Categories: Short numeric (4rem), Game scores (4.5rem), Medium (5-6rem), Names (8-10rem)
-- Add new column types to control their minimum display width
+Utility functions:
 
-**Table State Management:**
-
-- `tableState` object: Stores headers, original rows, and sort state for each tab
-- Each tab has a unique key (slugified from the tab name)
-
-**Sorting Logic:**
-
-- Numeric columns detected via `numericHeaderHints` array (index.html:112-120)
-- Numeric values are extracted by stripping commas and parsing
-- Fallback to alphabetic sorting for non-numeric columns
-- Stable sort preserves original order for equal values
-
-**Search:**
-
-- Client-side, case-insensitive search across all columns
-- Filters visible rows in the active tab only
-- Preserves sort state during search
+- `slugify(str)`: Convert to URL-safe slug
+- `sortRows(rows, key, dir)`: Sort rows with numeric detection
+- `formatDateRange(dates)`: Format date array
+- `getDisplayName(value, map)`: Lookup display name
 
 ## Adding a New Event
 
-1. Create directory: `data/events/{event-name}/{year}/`
+1. Create directory: `data/events/{slug}/{year}/`
 2. Add `meta.json` with event configuration
 3. Add CSV files (tab-separated) referenced in `meta.json`
-4. Update `EVENT_BASE_PATH` in index.html:85 to point to the new event
+4. Run `npm run build`
+5. Event automatically appears on homepage and at `/events/{slug}/{year}/`
 
 ## Modifying Display
 
 **Add new column type:**
 
-1. Add column name to `columnWidthMap` in index.html:85-106
-2. If numeric, ensure column name matches a hint in `numericHeaderHints` (index.html:112-120)
+Edit `build/utils/helpers.js`:
 
-**Change default sort:**
+```javascript
+const columnWidthMap = {
+  // ...existing columns...
+  "New Column": "min-w-[5rem]",
+};
+```
 
-- Tables default to sorting by "Place" column (ascending)
-- Modify logic in index.html:500-503 and index.html:434-436
+**Add new format:**
 
-## Page Structure
+```javascript
+const formatDisplayNames = {
+  // ...existing formats...
+  "new-format": "Display Name",
+};
+```
 
-**Header:**
+**Add new badge type:**
 
-- Dynamic event title with responsive sizing
-- Color-coded badges with icons for format (blue), type (emerald), and pattern (purple)
-- Prominent date display with calendar icon
-- All content pulled from `meta.json`
+Edit `templates/pages/event.ejs` and add a new badge block.
 
-**Footer:**
+## URL Structure
 
-- Organizer information (from `meta.json`, left-aligned)
-- Last updated timestamp (from `meta.json` or current time, stacked below organizer)
-- Hardcoded copyright: "© 2026 GoBowling Shipley Lanes • Built with ❤️ for bowling"
-- Ultra-minimal styling: no background, no icons, blends seamlessly with page
+| URL                                    | Description             |
+| -------------------------------------- | ----------------------- |
+| `/`                                    | Events listing homepage |
+| `/events/{slug}/{year}/`               | Event results page      |
+| `/events/{slug}/{year}/meta-lock.json` | Lockfile (reference)    |
 
 ## Deployment (Cloudflare Pages)
 
-### File Structure
+### Configuration
 
-```
-/
-  index.html          # Main tournament results page
-  404.html            # Custom 404 error page
-  wrangler.toml       # Cloudflare Pages configuration
-  _headers            # Cache and security headers
-  CLAUDE.md           # This file
-  data/
-    events/
-      {event-name}/
-        {year}/
-          meta.json   # Event configuration
-          *.csv       # Results data (tab-separated)
+**wrangler.toml:**
+
+```toml
+pages_build_output_dir = "dist"
 ```
 
 ### Deployment Steps
 
 1. Connect repository to Cloudflare Pages
-2. Set build output directory to `.` (root)
-3. No build command needed (static site)
+2. Set build command: `npm run build`
+3. Set build output directory: `dist`
 4. Deploy automatically on push to main branch
 
-### Configuration Files
+### Caching Strategy
 
-- **wrangler.toml**: Cloudflare Pages settings, build output directory
-- **\_headers**: Caching (5 min for data files, 1 min for HTML) and security headers
-- **404.html**: Custom error page with bowling theme
+- HTML pages: 1 hour cache
+- Lockfiles: 24 hour cache
+- Index page: 30 minute cache (fresher event listings)
 
-### Current Limitations (v0)
+## Technical Details
 
-- `EVENT_BASE_PATH` is hardcoded to single event (`./data/events/new-years-doubles/2026`)
-- Multi-event support planned for future versions
-- Will require parameterization via query string or event listing page
+### Dependencies
 
-## Technical Constraints
+- `ejs`: Template rendering
+- `papaparse`: CSV parsing (tab-separated)
 
-- No build system or bundler
-- Libraries loaded from CDN (Tailwind CSS, PapaParse)
-- All JavaScript is inline within index.html
-- Uses polyfill for `Element.prototype.setHTMLUnsafe` for SVG icon rendering
-- Designed for modern browsers with ES6+ support
-- Print styles included for clean printing (hides controls, shows all tabs)
+### Client-Side JavaScript
 
-## CSV File Format
+Event pages include inline JavaScript for:
 
-**Critical:** All CSV files must use **tab characters** (`\t`) as delimiters, not commas. The PapaParse configuration in index.html:419 explicitly sets `delimiter: "\t"`.
+- **Sorting**: Re-renders table from embedded `tableState`
+- **Searching**: Filters visible rows
+- **Tab switching**: Shows/hides panels
+
+The `tableState` object is pre-serialized as JSON at build time.
+
+### CSV Format
+
+All CSV files must use **tab characters** (`\t`) as delimiters. Configured in:
+
+- Build: `build/utils/csv.js` with `delimiter: '\t'`
+
+### Print Styles
+
+Included in templates for clean printing (hides controls, shows all tabs).
+
+## Documentation
+
+- `docs/templates.md`: Detailed template reference guide
+- This file: Project overview and build system

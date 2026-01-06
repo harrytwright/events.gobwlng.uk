@@ -1,0 +1,259 @@
+#!/usr/bin/env node
+
+import fs from "fs/promises";
+import path from "path";
+import { fileURLToPath } from "url";
+import ejs from "ejs";
+
+import { discoverEvents } from "./utils/discovery.js";
+import { parseCSV } from "./utils/csv.js";
+import { generateLockfile, writeLockfile } from "./utils/lockfile.js";
+import {
+  slugify,
+  sortRows,
+  formatDisplayNames,
+  typeDisplayNames,
+  columnWidthMap,
+  numericHeaderHints,
+  getColumnWidthClass,
+  isLikelyNumericHeader,
+  isNumericValue,
+  formatDateRange,
+  getDisplayName,
+  formatLastUpdated,
+} from "./utils/helpers.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const ROOT_DIR = path.resolve(__dirname, "..");
+
+const DIST_DIR = path.join(ROOT_DIR, "dist");
+const DATA_DIR = path.join(ROOT_DIR, "data", "events");
+const TEMPLATES_DIR = path.join(ROOT_DIR, "templates");
+
+/**
+ * Clean and recreate the dist directory.
+ */
+async function cleanDist() {
+  console.log("Cleaning dist directory...");
+  await fs.rm(DIST_DIR, { recursive: true, force: true });
+  await fs.mkdir(DIST_DIR, { recursive: true });
+  await fs.mkdir(path.join(DIST_DIR, "events"), { recursive: true });
+}
+
+/**
+ * Process a single event and generate its HTML page.
+ */
+async function processEvent(event) {
+  console.log(`Processing event: ${event.slug}/${event.year}`);
+
+  // Read meta.json
+  const metaContent = await fs.readFile(event.metaPath, "utf-8");
+  const meta = JSON.parse(metaContent);
+
+  // Parse all CSV files and build tabs
+  const tabs = [];
+  const files = Array.isArray(meta.files) ? meta.files : [];
+
+  for (const fileConfig of files) {
+    const csvPath = path.join(event.basePath, fileConfig.file);
+
+    try {
+      const rows = await parseCSV(csvPath);
+      const headers = rows.length > 0 ? Object.keys(rows[0]) : [];
+
+      // Apply default sort by "Place" column if it exists
+      const defaultKey = headers.includes("Place") ? "Place" : headers[0];
+      const sortedRows = defaultKey ? sortRows(rows, defaultKey, "asc") : rows;
+
+      tabs.push({
+        id: slugify(fileConfig.name || `tab-${tabs.length + 1}`),
+        name: fileConfig.name || `Tab ${tabs.length + 1}`,
+        headers,
+        rows: sortedRows,
+        isActive: tabs.length === 0,
+      });
+    } catch (err) {
+      console.error(`Error processing ${csvPath}: ${err.message}`);
+      // Skip this tab but continue with others
+    }
+  }
+
+  // Generate lockfile
+  const lockfile = await generateLockfile(event.basePath, files);
+
+  // Write lockfile to source directory
+  const sourceLockfilePath = path.join(event.basePath, "meta-lock.json");
+  await writeLockfile(sourceLockfilePath, lockfile);
+
+  // Build tableState for client-side JS
+  const tableState = {};
+  for (const tab of tabs) {
+    tableState[tab.id] = {
+      headers: tab.headers,
+      rowsOriginal: tab.rows,
+      sort: {
+        key: tab.headers.includes("Place") ? "Place" : tab.headers[0] || "",
+        dir: "asc",
+      },
+    };
+  }
+
+  // Render the event page
+  const html = await ejs.renderFile(
+    path.join(TEMPLATES_DIR, "pages", "event.ejs"),
+    {
+      meta,
+      tabs,
+      tableState,
+      lockfile,
+      // Helper functions and mappings for the template
+      formatDisplayNames,
+      typeDisplayNames,
+      columnWidthMap,
+      numericHeaderHints,
+      slugify,
+      getColumnWidthClass,
+      isLikelyNumericHeader,
+      isNumericValue,
+      formatDateRange,
+      getDisplayName,
+      formatLastUpdated,
+    },
+    { async: true },
+  );
+
+  // Create output directory
+  const outputDir = path.join(DIST_DIR, "events", event.slug, event.year);
+  await fs.mkdir(outputDir, { recursive: true });
+
+  // Write HTML
+  await fs.writeFile(path.join(outputDir, "index.html"), html, "utf-8");
+
+  // Copy lockfile to dist
+  await fs.copyFile(sourceLockfilePath, path.join(outputDir, "meta-lock.json"));
+
+  console.log(`  -> ${outputDir}/index.html`);
+
+  return { slug: event.slug, year: event.year, meta };
+}
+
+/**
+ * Generate the events index/listing page.
+ */
+async function generateIndexPage(eventsData) {
+  console.log("Generating index page...");
+
+  // Sort events by date (most recent first)
+  eventsData.sort((a, b) => {
+    // Parse first date from each event (format: dd/mm/yyyy)
+    const parseDate = (dates) => {
+      if (!dates || !dates.length) return new Date(0);
+      const [day, month, year] = dates[0].split("/");
+      return new Date(year, month - 1, day);
+    };
+
+    const dateA = parseDate(a.meta.dates);
+    const dateB = parseDate(b.meta.dates);
+    return dateB - dateA;
+  });
+
+  const html = await ejs.renderFile(
+    path.join(TEMPLATES_DIR, "pages", "index.ejs"),
+    {
+      events: eventsData,
+      formatDisplayNames,
+      typeDisplayNames,
+      formatDateRange,
+      getDisplayName,
+    },
+    { async: true },
+  );
+
+  await fs.writeFile(path.join(DIST_DIR, "index.html"), html, "utf-8");
+  console.log("  -> dist/index.html");
+}
+
+/**
+ * Generate the 404 error page.
+ */
+async function generate404Page() {
+  console.log("Generating 404 page...");
+
+  const html = await ejs.renderFile(
+    path.join(TEMPLATES_DIR, "pages", "404.ejs"),
+    { currentYear: new Date().getFullYear() },
+    { async: true },
+  );
+
+  await fs.writeFile(path.join(DIST_DIR, "404.html"), html, "utf-8");
+  console.log("  -> dist/404.html");
+}
+
+/**
+ * Copy static files to dist.
+ */
+async function copyStaticFiles() {
+  console.log("Copying static files...");
+
+  // Copy _headers
+  const headersPath = path.join(ROOT_DIR, "_headers");
+  try {
+    await fs.access(headersPath);
+    await fs.copyFile(headersPath, path.join(DIST_DIR, "_headers"));
+    console.log("  -> dist/_headers");
+  } catch {
+    console.warn("  ! _headers not found, skipping");
+  }
+}
+
+/**
+ * Main build function.
+ */
+async function build() {
+  console.log("Starting build...\n");
+  const startTime = Date.now();
+
+  try {
+    // Step 1: Clean dist
+    await cleanDist();
+
+    // Step 2: Discover events
+    console.log("\nDiscovering events...");
+    const events = await discoverEvents(DATA_DIR);
+    console.log(`Found ${events.length} event(s)\n`);
+
+    if (events.length === 0) {
+      console.warn("No events found. Creating empty index page.");
+    }
+
+    // Step 3: Process each event
+    console.log("Processing events...");
+    const eventsData = [];
+    for (const event of events) {
+      const data = await processEvent(event);
+      eventsData.push(data);
+    }
+
+    // Step 4: Generate index page
+    console.log("");
+    await generateIndexPage(eventsData);
+
+    // Step 5: Generate 404 page
+    await generate404Page();
+
+    // Step 6: Copy static files
+    await copyStaticFiles();
+
+    const duration = ((Date.now() - startTime) / 1000).toFixed(2);
+    console.log(`\nBuild complete in ${duration}s`);
+    console.log(`Output: ${DIST_DIR}`);
+  } catch (err) {
+    console.error("\nBuild failed:", err.message);
+    console.error(err.stack);
+    process.exit(1);
+  }
+}
+
+// Run build
+build();

@@ -2,4 +2,4 @@ name = "bowling-tournament-results"
 compatibility_date = "2025-01-05"
 
 # Cloudflare Pages configuration
-pages_build_output_dir = "."
+pages_build_output_dir = "dist"

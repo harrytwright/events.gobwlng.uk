@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= typeof title !== 'undefined' ? title : 'Tournament Results' %></title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      /* Custom scrollbar styling for webkit browsers */
+      .overflow-x-auto::-webkit-scrollbar {
+        height: 0.5rem;
+      }
+      .overflow-x-auto::-webkit-scrollbar-track {
+        background: #f3f4f6;
+        border-radius: 0.25rem;
+      }
+      .overflow-x-auto::-webkit-scrollbar-thumb {
+        background: #d1d5db;
+        border-radius: 0.25rem;
+      }
+      .overflow-x-auto::-webkit-scrollbar-thumb:hover {
+        background: #9ca3af;
+      }
+
+      /* Smooth transitions for interactive elements */
+      .tab-btn,
+      button,
+      th,
+      tr {
+        transition: all 150ms ease-in-out;
+      }
+
+      /* Print styles */
+      @media print {
+        body {
+          background: white;
+        }
+        .tab-btn,
+        #searchInput,
+        #clearSearchBtn,
+        .print-hide {
+          display: none !important;
+        }
+        .tab-panel.hidden {
+          display: block !important;
+        }
+        table {
+          page-break-inside: auto;
+        }
+        tr {
+          page-break-inside: avoid;
+          page-break-after: auto;
+        }
+        thead {
+          display: table-header-group;
+        }
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50">
+    <%- body %>
+  </body>
+</html>
