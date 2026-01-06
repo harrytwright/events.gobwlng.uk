@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title><%= typeof title !== 'undefined' ? title : 'Tournament Results' %></title>
     <link rel="stylesheet" href="/style/index.css" />
+    <%- await include('../partials/posthog') %>
     <style>
       /* Custom scrollbar styling for webkit browsers */
       .overflow-x-auto::-webkit-scrollbar {
