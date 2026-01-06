@@ -61,60 +61,74 @@
         %>
 
         <!-- Filters -->
-        <section class="mb-8 rounded-lg border border-gray-200 bg-white p-4 md:p-6 shadow-sm">
-          <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-              <label class="text-sm font-semibold text-gray-700">
-                Format
-                <select
-                  id="filterFormat"
-                  class="mt-2 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">All formats</option>
-                  <% formatItems.forEach((item) => { %>
-                    <option value="<%= item.value %>"><%= item.label %></option>
-                  <% }); %>
-                </select>
-              </label>
+        <section class="mb-8">
+          <div class="flex flex-col gap-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm md:flex-row md:items-center md:justify-between md:px-6">
+            <div class="flex flex-wrap items-center gap-3">
+              <span class="text-sm font-semibold text-gray-600">Filter by</span>
+              <div class="flex flex-wrap gap-2">
+                <div class="relative">
+                  <label for="filterFormat" class="sr-only">Format</label>
+                  <select
+                    id="filterFormat"
+                    class="appearance-none rounded-full border border-gray-200 bg-white px-4 py-2 pr-9 text-sm font-semibold text-gray-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">All formats</option>
+                    <% formatItems.forEach((item) => { %>
+                      <option value="<%= item.value %>"><%= item.label %></option>
+                    <% }); %>
+                  </select>
+                  <svg class="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M5.22 7.22a.75.75 0 0 1 1.06 0L10 10.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 8.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
+                  </svg>
+                </div>
 
-              <label class="text-sm font-semibold text-gray-700">
-                Type
-                <select
-                  id="filterType"
-                  class="mt-2 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">All types</option>
-                  <% typeItems.forEach((item) => { %>
-                    <option value="<%= item.value %>"><%= item.label %></option>
-                  <% }); %>
-                </select>
-              </label>
+                <div class="relative">
+                  <label for="filterType" class="sr-only">Type</label>
+                  <select
+                    id="filterType"
+                    class="appearance-none rounded-full border border-gray-200 bg-white px-4 py-2 pr-9 text-sm font-semibold text-gray-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">All types</option>
+                    <% typeItems.forEach((item) => { %>
+                      <option value="<%= item.value %>"><%= item.label %></option>
+                    <% }); %>
+                  </select>
+                  <svg class="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M5.22 7.22a.75.75 0 0 1 1.06 0L10 10.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 8.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
+                  </svg>
+                </div>
 
-              <label class="text-sm font-semibold text-gray-700">
-                Year
-                <select
-                  id="filterYear"
-                  class="mt-2 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">All years</option>
-                  <% yearItems.forEach((year) => { %>
-                    <option value="<%= year %>"><%= year %></option>
-                  <% }); %>
-                </select>
-              </label>
+                <div class="relative">
+                  <label for="filterYear" class="sr-only">Year</label>
+                  <select
+                    id="filterYear"
+                    class="appearance-none rounded-full border border-gray-200 bg-white px-4 py-2 pr-9 text-sm font-semibold text-gray-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">All years</option>
+                    <% yearItems.forEach((year) => { %>
+                      <option value="<%= year %>"><%= year %></option>
+                    <% }); %>
+                  </select>
+                  <svg class="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M5.22 7.22a.75.75 0 0 1 1.06 0L10 10.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 8.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+              </div>
             </div>
 
-            <div class="flex flex-col items-start gap-2 text-sm text-gray-500 sm:flex-row sm:items-center">
+            <div class="flex items-center gap-3 text-sm text-gray-500">
               <span id="filterCount"></span>
               <button
                 id="clearFilters"
                 type="button"
-                class="rounded-md border border-gray-300 bg-white px-3 py-2 text-xs font-semibold text-gray-600 shadow-sm hover:bg-gray-50"
+                class="hidden text-sm font-semibold text-blue-600 hover:text-blue-700"
               >
                 Clear filters
               </button>
             </div>
           </div>
+
+          <div id="activeFilters" class="mt-3 hidden flex flex-wrap gap-2"></div>
         </section>
 
         <!-- Events Grid -->
@@ -221,9 +235,16 @@
           const typeSelect = document.getElementById("filterType");
           const yearSelect = document.getElementById("filterYear");
           const clearButton = document.getElementById("clearFilters");
+          const activeFilters = document.getElementById("activeFilters");
           const cards = Array.from(document.querySelectorAll("[data-event-card]"));
           const count = document.getElementById("filterCount");
           const emptyState = document.getElementById("noResults");
+
+          const filterFields = [
+            { key: "format", label: "Format", select: formatSelect },
+            { key: "type", label: "Type", select: typeSelect },
+            { key: "year", label: "Year", select: yearSelect },
+          ];
 
           const update = () => {
             const format = formatSelect.value;
@@ -246,18 +267,53 @@
             if (emptyState) {
               emptyState.classList.toggle("hidden", visible !== 0);
             }
+
+            if (activeFilters) {
+              activeFilters.innerHTML = "";
+              const active = filterFields.filter((field) => field.select.value);
+              active.forEach((field) => {
+                const chip = document.createElement("button");
+                chip.type = "button";
+                chip.className =
+                  "group inline-flex items-center gap-2 rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-200";
+                chip.dataset.filter = field.key;
+
+                const label = document.createElement("span");
+                label.textContent = `${field.label}: ${field.select.selectedOptions[0].textContent}`;
+
+                const icon = document.createElement("span");
+                icon.className = "text-gray-400 group-hover:text-gray-600";
+                icon.textContent = "x";
+
+                chip.appendChild(label);
+                chip.appendChild(icon);
+                chip.addEventListener("click", () => {
+                  field.select.value = "";
+                  update();
+                });
+
+                activeFilters.appendChild(chip);
+              });
+
+              activeFilters.classList.toggle("hidden", active.length === 0);
+              if (clearButton) {
+                clearButton.classList.toggle("hidden", active.length === 0);
+              }
+            }
           };
 
           [formatSelect, typeSelect, yearSelect].forEach((select) => {
             select.addEventListener("change", update);
           });
 
-          clearButton.addEventListener("click", () => {
-            formatSelect.value = "";
-            typeSelect.value = "";
-            yearSelect.value = "";
-            update();
-          });
+          if (clearButton) {
+            clearButton.addEventListener("click", () => {
+              formatSelect.value = "";
+              typeSelect.value = "";
+              yearSelect.value = "";
+              update();
+            });
+          }
 
           update();
         })();
