@@ -254,4 +254,4 @@ meta.json + CSV files
 2. **Client-Side Sorting** - JavaScript re-renders from embedded `tableState`
 3. **Git-Based Timestamps** - Lockfile captures last modification from git
 4. **Tab-Separated CSV** - PapaParse configured with `delimiter: '\t'`
-5. **Tailwind CDN** - Only external dependency at runtime
+5. **Tailwind Build** - CSS generated during build via PostCSS

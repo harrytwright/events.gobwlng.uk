@@ -4,6 +4,8 @@ import fs from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
 import ejs from "ejs";
+import postcss from "postcss";
+import postcssConfig from "../postcss.config.mjs";
 
 import { discoverEvents } from "./utils/discovery.js";
 import { parseCSV } from "./utils/csv.js";
@@ -13,6 +15,7 @@ import {
   sortRows,
   formatDisplayNames,
   typeDisplayNames,
+  categoryDisplayNames,
   columnWidthMap,
   numericHeaderHints,
   getColumnWidthClass,
@@ -30,6 +33,12 @@ const ROOT_DIR = path.resolve(__dirname, "..");
 const DIST_DIR = path.join(ROOT_DIR, "dist");
 const DATA_DIR = path.join(ROOT_DIR, "data", "events");
 const TEMPLATES_DIR = path.join(ROOT_DIR, "templates");
+const STATIC_DIR = path.join(ROOT_DIR, "static");
+const STYLE_ENTRY = path.join(STATIC_DIR, "style", "index.css");
+const STYLE_OUTPUT = path.join(DIST_DIR, "style", "index.css");
+const postcssPlugins = Array.isArray(postcssConfig?.plugins)
+  ? postcssConfig.plugins
+  : Object.values(postcssConfig?.plugins ?? {});
 
 /**
  * Clean and recreate the dist directory.
@@ -110,6 +119,7 @@ async function processEvent(event) {
       // Helper functions and mappings for the template
       formatDisplayNames,
       typeDisplayNames,
+      categoryDisplayNames,
       columnWidthMap,
       numericHeaderHints,
       slugify,
@@ -166,6 +176,7 @@ async function generateIndexPage(eventsData) {
       typeDisplayNames,
       formatDateRange,
       getDisplayName,
+      categoryDisplayNames,
     },
     { async: true },
   );
@@ -191,10 +202,50 @@ async function generate404Page() {
 }
 
 /**
+ * Build Tailwind CSS via PostCSS.
+ */
+async function buildStyles() {
+  console.log("Building styles...");
+
+  const css = await fs.readFile(STYLE_ENTRY, "utf-8");
+  const result = await postcss(postcssPlugins).process(css, {
+    from: STYLE_ENTRY,
+    to: STYLE_OUTPUT,
+  });
+
+  const warnings = result.warnings();
+  if (warnings.length) {
+    warnings.forEach((warning) => console.warn(warning.toString()));
+  }
+
+  await fs.mkdir(path.dirname(STYLE_OUTPUT), { recursive: true });
+  await fs.writeFile(STYLE_OUTPUT, result.css, "utf-8");
+  console.log("  -> dist/style/index.css");
+}
+
+/**
  * Copy static files to dist.
  */
 async function copyStaticFiles() {
   console.log("Copying static files...");
+
+  // Copy static assets into dist root (static/style -> dist/style)
+  try {
+    const entries = await fs.readdir(STATIC_DIR, { withFileTypes: true });
+    for (const entry of entries) {
+      const src = path.join(STATIC_DIR, entry.name);
+      const dest = path.join(DIST_DIR, entry.name);
+      await fs.cp(src, dest, { recursive: entry.isDirectory() });
+    }
+    if (entries.length) {
+      console.log("  -> dist/(static assets)");
+    }
+  } catch (err) {
+    if (err.code !== "ENOENT") {
+      throw err;
+    }
+    console.warn("  ! static directory not found, skipping");
+  }
 
   // Copy _headers
   const headersPath = path.join(ROOT_DIR, "_headers");
@@ -244,6 +295,9 @@ async function build() {
 
     // Step 6: Copy static files
     await copyStaticFiles();
+
+    // Step 7: Build styles
+    await buildStyles();
 
     const duration = ((Date.now() - startTime) / 1000).toFixed(2);
     console.log(`\nBuild complete in ${duration}s`);

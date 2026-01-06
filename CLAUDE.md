@@ -122,6 +122,8 @@ Generated at build time with git-based timestamps:
 ```bash
 npm run build   # Generate dist/ from templates and data
 npm run clean   # Remove dist/ directory
+npm run dev     # Build once, then serve dist/ at http://localhost:3000
+npm run serve   # Serve dist/ without rebuilding
 ```
 
 ### Build Process

@@ -22,6 +22,14 @@ export const typeDisplayNames = {
   mixed: "Mixed",
 };
 
+// Type display name mappings
+export const categoryDisplayNames = {
+  junior: "Junior",
+  adult: "Adult",
+  senior: "Senior",
+  mixed: "Open",
+};
+
 // Preset minimum widths per column key (flexible, content-based)
 export const columnWidthMap = {
   // Short numeric/code columns
