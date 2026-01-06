@@ -38,16 +38,94 @@
           <p class="text-gray-500">Check back soon for tournament results.</p>
         </div>
       <% } else { %>
+        <%
+          const formatItems = [...new Set(events.map((event) => event.meta.format).filter(Boolean))]
+            .map((value) => ({ value, label: getDisplayName(value, formatDisplayNames) }))
+            .sort((a, b) => a.label.localeCompare(b.label));
+          const typeItems = [...new Set(events.map((event) => event.meta.type).filter(Boolean))]
+            .map((value) => ({ value, label: getDisplayName(value, typeDisplayNames) }))
+            .sort((a, b) => a.label.localeCompare(b.label));
+          const yearItems = [...new Set(events.map((event) => event.year).filter(Boolean))]
+            .sort((a, b) => Number(b) - Number(a));
+        %>
+
+        <!-- Filters -->
+        <section class="mb-8 rounded-lg border border-gray-200 bg-white p-4 md:p-6 shadow-sm">
+          <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <label class="text-sm font-semibold text-gray-700">
+                Format
+                <select
+                  id="filterFormat"
+                  class="mt-2 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">All formats</option>
+                  <% formatItems.forEach((item) => { %>
+                    <option value="<%= item.value %>"><%= item.label %></option>
+                  <% }); %>
+                </select>
+              </label>
+
+              <label class="text-sm font-semibold text-gray-700">
+                Type
+                <select
+                  id="filterType"
+                  class="mt-2 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">All types</option>
+                  <% typeItems.forEach((item) => { %>
+                    <option value="<%= item.value %>"><%= item.label %></option>
+                  <% }); %>
+                </select>
+              </label>
+
+              <label class="text-sm font-semibold text-gray-700">
+                Year
+                <select
+                  id="filterYear"
+                  class="mt-2 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">All years</option>
+                  <% yearItems.forEach((year) => { %>
+                    <option value="<%= year %>"><%= year %></option>
+                  <% }); %>
+                </select>
+              </label>
+            </div>
+
+            <div class="flex flex-col items-start gap-2 text-sm text-gray-500 sm:flex-row sm:items-center">
+              <span id="filterCount"></span>
+              <button
+                id="clearFilters"
+                type="button"
+                class="rounded-md border border-gray-300 bg-white px-3 py-2 text-xs font-semibold text-gray-600 shadow-sm hover:bg-gray-50"
+              >
+                Clear filters
+              </button>
+            </div>
+          </div>
+        </section>
+
         <!-- Events Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div id="eventGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <% events.forEach((event) => { %>
             <a
               href="/events/<%= event.slug %>/<%= event.year %>/"
               class="event-card block bg-white shadow-md border border-gray-200 rounded-lg p-6 hover:shadow-lg hover:border-gray-300"
+              data-event-card
+              data-format="<%= event.meta.format || '' %>"
+              data-type="<%= event.meta.type || '' %>"
+              data-year="<%= event.year || '' %>"
             >
               <h2 class="text-xl font-bold text-gray-900 mb-3">
                 <%= event.meta.name || 'Unnamed Event' %>
               </h2>
+
+              <% if (event.meta.description) { %>
+                <p class="text-sm text-gray-600 mb-4">
+                  <%= event.meta.description %>
+                </p>
+              <% } %>
 
               <div class="flex flex-wrap gap-3 mb-4">
                 <% if (event.meta.format) { %>
@@ -106,6 +184,11 @@
             </a>
           <% }); %>
         </div>
+
+        <div id="noResults" class="hidden text-center py-16">
+          <h2 class="text-xl font-semibold text-gray-700 mb-2">No matching events</h2>
+          <p class="text-gray-500">Try adjusting or clearing your filters.</p>
+        </div>
       <% } %>
 
       <!-- Footer -->
@@ -113,5 +196,55 @@
         <p>&copy; <%= new Date().getFullYear() %> GoBowling Shipley Lanes &bull; Built with &hearts; for bowling</p>
       </footer>
     </main>
+
+    <% if (events.length > 0) { %>
+      <script>
+        (() => {
+          const formatSelect = document.getElementById("filterFormat");
+          const typeSelect = document.getElementById("filterType");
+          const yearSelect = document.getElementById("filterYear");
+          const clearButton = document.getElementById("clearFilters");
+          const cards = Array.from(document.querySelectorAll("[data-event-card]"));
+          const count = document.getElementById("filterCount");
+          const emptyState = document.getElementById("noResults");
+
+          const update = () => {
+            const format = formatSelect.value;
+            const type = typeSelect.value;
+            const year = yearSelect.value;
+            let visible = 0;
+
+            cards.forEach((card) => {
+              const match =
+                (!format || card.dataset.format === format) &&
+                (!type || card.dataset.type === type) &&
+                (!year || card.dataset.year === year);
+              card.hidden = !match;
+              if (match) visible += 1;
+            });
+
+            if (count) {
+              count.textContent = `Showing ${visible} of ${cards.length} events`;
+            }
+            if (emptyState) {
+              emptyState.classList.toggle("hidden", visible !== 0);
+            }
+          };
+
+          [formatSelect, typeSelect, yearSelect].forEach((select) => {
+            select.addEventListener("change", update);
+          });
+
+          clearButton.addEventListener("click", () => {
+            formatSelect.value = "";
+            typeSelect.value = "";
+            yearSelect.value = "";
+            update();
+          });
+
+          update();
+        })();
+      </script>
+    <% } %>
   </body>
 </html>
