@@ -4,6 +4,18 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Page Not Found - Tournament Results</title>
+    <meta name="description" content="Page not found for GoBowling tournament results">
+    <meta property="og:title" content="Page Not Found - Tournament Results">
+    <meta property="og:description" content="Page not found for GoBowling tournament results">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="GoBowling Tournaments">
+    <% if (pageUrl) { %>
+      <meta property="og:url" content="<%= pageUrl %>">
+      <link rel="canonical" href="<%= pageUrl %>">
+    <% } %>
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Page Not Found - Tournament Results">
+    <meta name="twitter:description" content="Page not found for GoBowling tournament results">
     <link rel="stylesheet" href="/style/index.css" />
     <%- await include('../partials/posthog') %>
   </head>

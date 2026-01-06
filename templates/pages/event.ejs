@@ -1,14 +1,27 @@
 <%
   // Helper to safely get a value
   const safeGet = (obj, key) => obj[key] ?? obj[key?.trim?.()] ?? '';
+  const pageTitle = meta.name || 'Tournament Results';
+  const pageDescription = meta.description || `Results for ${meta.name || 'bowling tournament'}`;
 %>
 <!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title><%= meta.name || 'Tournament Results' %></title>
-    <meta name="description" content="Results for <%= meta.name || 'bowling tournament' %>">
+    <title><%= pageTitle %></title>
+    <meta name="description" content="<%= pageDescription %>">
+    <meta property="og:title" content="<%= pageTitle %>">
+    <meta property="og:description" content="<%= pageDescription %>">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="GoBowling Tournaments">
+    <% if (pageUrl) { %>
+      <meta property="og:url" content="<%= pageUrl %>">
+      <link rel="canonical" href="<%= pageUrl %>">
+    <% } %>
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="<%= pageTitle %>">
+    <meta name="twitter:description" content="<%= pageDescription %>">
     <link rel="stylesheet" href="/style/index.css" />
     <%- await include('../partials/posthog') %>
     <style>

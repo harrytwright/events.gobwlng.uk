@@ -121,6 +121,8 @@ async function processEvent(event) {
       tabs,
       tableState,
       lockfile,
+      siteUrl: SITE_URL,
+      pageUrl: `${SITE_URL}/events/${event.slug}/${event.year}/`,
       // Helper functions and mappings for the template
       formatDisplayNames,
       typeDisplayNames,
@@ -182,6 +184,8 @@ async function generateIndexPage(eventsData) {
       formatDateRange,
       getDisplayName,
       categoryDisplayNames,
+      siteUrl: SITE_URL,
+      pageUrl: `${SITE_URL}/`,
     },
     { async: true },
   );
@@ -198,7 +202,11 @@ async function generate404Page() {
 
   const html = await ejs.renderFile(
     path.join(TEMPLATES_DIR, "pages", "404.ejs"),
-    { currentYear: new Date().getFullYear() },
+    {
+      currentYear: new Date().getFullYear(),
+      siteUrl: SITE_URL,
+      pageUrl: `${SITE_URL}/404.html`,
+    },
     { async: true },
   );
 

@@ -5,6 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Tournament Results - GoBowling Events</title>
     <meta name="description" content="Browse bowling tournament results from GoBowling Events">
+    <meta property="og:title" content="Tournament Results - GoBowling Events">
+    <meta property="og:description" content="Browse bowling tournament results from GoBowling Events">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="GoBowling Tournaments">
+    <% if (pageUrl) { %>
+      <meta property="og:url" content="<%= pageUrl %>">
+      <link rel="canonical" href="<%= pageUrl %>">
+    <% } %>
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Tournament Results - GoBowling Events">
+    <meta name="twitter:description" content="Browse bowling tournament results from GoBowling Events">
     <link rel="stylesheet" href="/style/index.css" />
     <%- await include('../partials/posthog') %>
     <style>
