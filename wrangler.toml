@@ -3,3 +3,15 @@ compatibility_date = "2025-01-05"
 
 # Cloudflare Pages configuration
 pages_build_output_dir = "dist"
+
+[[kv_namespaces]]
+binding = "LINKS"
+preview_id = "a3266834e09c4596b56d822db83a7383"
+id = "10d8e4271c30447ebec8a4d3db4435c6"
+[[kv_namespaces]]
+binding = "CLICKS_SEEN"
+id = "603a1957260e4f8d85cb0bffbcd7d8f9"
+preview_id = "7de92392e7ea45cb89e9720b98d5dc73"
+[[analytics_engine_datasets]]
+binding = "SHARE_CLICKS"
+dataset = "share_clicks"
