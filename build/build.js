@@ -39,6 +39,11 @@ const STYLE_OUTPUT = path.join(DIST_DIR, "style", "index.css");
 const postcssPlugins = Array.isArray(postcssConfig?.plugins)
   ? postcssConfig.plugins
   : Object.values(postcssConfig?.plugins ?? {});
+const DEFAULT_SITE_URL = `http://localhost:${process.env.PORT || 3000}`;
+const RAW_SITE_URL = process.env.SITE_URL || process.env.CF_PAGES_URL;
+const SITE_URL = (RAW_SITE_URL && RAW_SITE_URL.trim())
+  ? RAW_SITE_URL.replace(/\/$/, "")
+  : DEFAULT_SITE_URL;
 
 /**
  * Clean and recreate the dist directory.
@@ -145,7 +150,7 @@ async function processEvent(event) {
 
   console.log(`  -> ${outputDir}/index.html`);
 
-  return { slug: event.slug, year: event.year, meta };
+  return { slug: event.slug, year: event.year, meta, lockfile };
 }
 
 /**
@@ -199,6 +204,58 @@ async function generate404Page() {
 
   await fs.writeFile(path.join(DIST_DIR, "404.html"), html, "utf-8");
   console.log("  -> dist/404.html");
+}
+
+/**
+ * Generate sitemap.xml and robots.txt.
+ */
+async function generateSitemapAndRobots(eventsData) {
+  console.log("Generating sitemap and robots...");
+
+  if (!RAW_SITE_URL) {
+    console.warn(`  ! SITE_URL not set, using ${SITE_URL} for sitemap URLs`);
+  }
+
+  const urls = [
+    { loc: `${SITE_URL}/`, lastmod: new Date().toISOString() },
+    ...eventsData.map((event) => {
+      const lastChange = event.lockfile?.lastChangeAt || event.lockfile?.generatedAt;
+      const lastmod = lastChange ? new Date(lastChange).toISOString() : null;
+      return {
+        loc: `${SITE_URL}/events/${event.slug}/${event.year}/`,
+        lastmod,
+      };
+    }),
+  ];
+
+  const sitemap = [
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
+    "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">",
+    ...urls.map((url) => {
+      const parts = [`  <url>`, `    <loc>${url.loc}</loc>`];
+      if (url.lastmod) {
+        parts.push(`    <lastmod>${url.lastmod}</lastmod>`);
+      }
+      parts.push("  </url>");
+      return parts.join("\n");
+    }),
+    "</urlset>",
+    "",
+  ].join("\n");
+
+  await fs.writeFile(path.join(DIST_DIR, "sitemap.xml"), sitemap, "utf-8");
+  console.log("  -> dist/sitemap.xml");
+
+  const robots = [
+    "User-agent: *",
+    "Allow: /",
+    "",
+    `Sitemap: ${SITE_URL}/sitemap.xml`,
+    "",
+  ].join("\n");
+
+  await fs.writeFile(path.join(DIST_DIR, "robots.txt"), robots, "utf-8");
+  console.log("  -> dist/robots.txt");
 }
 
 /**
@@ -293,10 +350,13 @@ async function build() {
     // Step 5: Generate 404 page
     await generate404Page();
 
-    // Step 6: Copy static files
+    // Step 6: Generate sitemap and robots
+    await generateSitemapAndRobots(eventsData);
+
+    // Step 7: Copy static files
     await copyStaticFiles();
 
-    // Step 7: Build styles
+    // Step 8: Build styles
     await buildStyles();
 
     const duration = ((Date.now() - startTime) / 1000).toFixed(2);
