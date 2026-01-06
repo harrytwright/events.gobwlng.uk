@@ -33,8 +33,13 @@
 
       /* Loading skeleton animation */
       @keyframes pulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.5; }
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
       }
       .skeleton {
         animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
@@ -71,8 +76,12 @@
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
       <!-- Dynamic event header -->
       <header id="eventHeader" class="mb-8 text-center">
-        <h1 class="text-1xl md:text-2xl lg:text-3xl font-bold text-gray-900">Loading event…</h1>
-        <p class="mt-2 text-base text-gray-600">Please wait while we fetch the results.</p>
+        <h1 class="text-1xl md:text-2xl lg:text-3xl font-bold text-gray-900">
+          Loading event…
+        </h1>
+        <p class="mt-2 text-base text-gray-600">
+          Please wait while we fetch the results.
+        </p>
       </header>
 
       <section class="bg-white shadow-md border border-gray-200 rounded-lg">
@@ -163,30 +172,43 @@
 
       // Type display name mappings
       const typeDisplayNames = {
-        "handicap": "Handicap",
-        "scratch": "Scratch",
-        "mixed": "Mixed",
+        handicap: "Handicap",
+        scratch: "Scratch",
+        mixed: "Mixed",
       };
 
-      // Preset widths per column key
+      // Preset minimum widths per column key (flexible, content-based)
       const columnWidthMap = {
-        Place: "w-14 min-w-[3.5rem]",
-        Squad: "w-12 min-w-[3rem]",
-        Team: "w-28 min-w-[6rem]",
-        Player: "w-32 min-w-[8rem]",
-        "Player 1": "w-32 min-w-[8rem]",
-        "Player 2": "w-32 min-w-[8rem]",
-        HCP: "w-14 min-w-[3.5rem]",
-        Scratch: "w-20 min-w-[5rem]",
-        "Scratch Series": "w-24",
-        "HCP Series": "w-24",
-        "Game 1": "w-16",
-        "Game 2": "w-16",
-        "Game 3": "w-16",
-        Pace: "w-14",
-        Average: "w-20 min-w-[5rem]",
-        // fallback default for unknown columns:
-        "*": "min-w-[7rem]",
+        // Short numeric/code columns
+        Place: "min-w-[4rem]",
+        Squad: "min-w-[4rem]",
+        HCP: "min-w-[4rem]",
+        Pace: "min-w-[4rem]",
+
+        // Game score columns
+        "Game 1": "min-w-[4.5rem]",
+        "Game 2": "min-w-[4.5rem]",
+        "Game 3": "min-w-[4.5rem]",
+
+        // Medium numeric columns
+        Scratch: "min-w-[5rem]",
+        Average: "min-w-[5rem]",
+
+        // Series columns
+        "Scratch Series": "min-w-[6rem]",
+        "HCP Series": "min-w-[6rem]",
+
+        // Name/text columns (more flexible)
+        Team: "min-w-[8rem]",
+        Player: "min-w-[10rem]",
+        "Player 1": "min-w-[10rem]",
+        "Player 2": "min-w-[10rem]",
+
+        // Team HCP (if present)
+        "Team HCP": "min-w-[5rem]",
+
+        // Fallback for unknown columns
+        "*": "min-w-[6rem]",
       };
 
       // Table state with headers, original rows, and last sort state
@@ -275,12 +297,14 @@
         header.innerHTML = "";
 
         const title = document.createElement("h1");
-        title.className = "text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4";
+        title.className =
+          "text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4";
         title.textContent = meta.name || "Tournament Results";
         header.appendChild(title);
 
         const infoRow = document.createElement("div");
-        infoRow.className = "flex flex-col md:flex-row flex-wrap items-center justify-center gap-3";
+        infoRow.className =
+          "flex flex-col md:flex-row flex-wrap items-center justify-center gap-3";
 
         // Format badge
         if (meta.format) {
@@ -333,7 +357,8 @@
         // Dates - separate row for more prominence
         if (meta.dates && meta.dates.length) {
           const dateRow = document.createElement("div");
-          dateRow.className = "mt-3 flex items-center justify-center gap-2 text-base text-gray-600";
+          dateRow.className =
+            "mt-3 flex items-center justify-center gap-2 text-base text-gray-600";
           dateRow.innerHTML = `
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5  text-gray-600">
   <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z" />
@@ -348,19 +373,20 @@
       // ---- Rendering: event footer from meta.json ----
 
       function formatLastUpdated(timestamp) {
-        if (!timestamp) return new Date().toLocaleString('en-GB', {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
-        });
-        return new Date(timestamp).toLocaleString('en-GB', {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
+        if (!timestamp)
+          return new Date().toLocaleString("en-GB", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+        return new Date(timestamp).toLocaleString("en-GB", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
         });
       }
 
@@ -386,7 +412,8 @@
 
         // Bottom: Copyright/Attribution (centered, static)
         const bottomRow = document.createElement("div");
-        bottomRow.className = "text-center text-xs text-gray-500 border-t border-gray-200 pt-4";
+        bottomRow.className =
+          "text-center text-xs text-gray-500 border-t border-gray-200 pt-4";
 
         const currentYear = new Date().getFullYear();
         bottomRow.innerHTML = `<p>© ${currentYear} GoBowling Shipley Lanes • Built with ❤️ for bowling</p>`;
@@ -422,8 +449,7 @@
         // Panel
         const panel = document.createElement("div");
         panel.id = id;
-        panel.className =
-          "tab-panel mt-6" + (isActive ? "" : " hidden");
+        panel.className = "tab-panel mt-6" + (isActive ? "" : " hidden");
         panel.setAttribute("role", "tabpanel");
         panel.setAttribute("aria-labelledby", id + "-tab");
 
@@ -481,7 +507,9 @@
             "px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider select-none",
             "cursor-pointer",
             "sticky top-0 z-10 group",
-            isSorted ? "bg-blue-50 text-blue-700" : "bg-gray-50 text-gray-700 hover:bg-gray-100 hover:text-gray-900",
+            isSorted
+              ? "bg-blue-50 text-blue-700"
+              : "bg-gray-50 text-gray-700 hover:bg-gray-100 hover:text-gray-900",
             "transition-colors",
           ].join(" ");
           th.setAttribute("data-key", h);
@@ -518,7 +546,7 @@
                   class="size-4">
                   <path stroke-linecap="round" stroke-linejoin="round"
                     d="M3 4.5h14.25M3 9h9.75M3 13.5h5.25m5.25-.75L17.25 9m0 0L21 12.75M17.25 9v12" />
-                </svg>`
+                </svg>`,
           );
 
           wrap.appendChild(iconSpan);
@@ -533,7 +561,7 @@
             const sorted = sortRows(
               tableState[tableKey].rowsOriginal,
               h,
-              nextDir
+              nextDir,
             );
             renderTable(headers, sorted, headerId, bodyId, tableKey);
             applySearch();
@@ -542,9 +570,10 @@
 
         data.forEach((row, index) => {
           const tr = document.createElement("tr");
-          tr.className = index % 2 === 0
-            ? "bg-white hover:bg-blue-50 transition-colors"
-            : "bg-gray-50 hover:bg-blue-50 transition-colors";
+          tr.className =
+            index % 2 === 0
+              ? "bg-white hover:bg-blue-50 transition-colors"
+              : "bg-gray-50 hover:bg-blue-50 transition-colors";
           headers.forEach((h) => {
             const td = document.createElement("td");
             const v = row[h] ?? row[h?.trim?.()] ?? "";
@@ -570,7 +599,8 @@
           const noRow = document.createElement("tr");
           const td = document.createElement("td");
           td.colSpan = headers.length || 1;
-          td.className = "text-center py-8 text-gray-600 font-medium bg-gray-50";
+          td.className =
+            "text-center py-8 text-gray-600 font-medium bg-gray-50";
           td.innerHTML = `
             <svg class="w-12 h-12 mx-auto mb-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
@@ -642,7 +672,8 @@
               const tr = document.createElement("tr");
               const td = document.createElement("td");
               td.colSpan = 10;
-              td.className = "text-center py-8 text-red-700 font-medium bg-red-50";
+              td.className =
+                "text-center py-8 text-red-700 font-medium bg-red-50";
               td.innerHTML = `
                 <svg class="w-12 h-12 mx-auto mb-3 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
@@ -670,7 +701,7 @@
         if (!tbody) return;
 
         const rows = Array.from(tbody.querySelectorAll("tr")).filter(
-          (tr) => !tr.classList.contains("no-results-message")
+          (tr) => !tr.classList.contains("no-results-message"),
         );
 
         let visibleCount = 0;
@@ -692,7 +723,8 @@
           noRow.className = "no-results-message";
           const td = document.createElement("td");
           td.colSpan = colCount;
-          td.className = "text-center py-8 text-gray-600 font-medium bg-gray-50";
+          td.className =
+            "text-center py-8 text-gray-600 font-medium bg-gray-50";
           td.innerHTML = `
             <svg class="w-12 h-12 mx-auto mb-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
@@ -719,7 +751,7 @@
           sorted,
           targetKey + "Header",
           targetKey + "Body",
-          targetKey
+          targetKey,
         );
         applySearch();
       }
@@ -736,15 +768,35 @@
 
             buttons.forEach((b) => {
               b.setAttribute("aria-selected", "false");
-              b.classList.remove("text-blue-600", "border-blue-600", "hover:text-blue-600", "hover:border-blue-600");
-              b.classList.add("text-gray-500", "border-transparent", "hover:text-gray-700", "hover:border-gray-300");
+              b.classList.remove(
+                "text-blue-600",
+                "border-blue-600",
+                "hover:text-blue-600",
+                "hover:border-blue-600",
+              );
+              b.classList.add(
+                "text-gray-500",
+                "border-transparent",
+                "hover:text-gray-700",
+                "hover:border-gray-300",
+              );
             });
 
             panels.forEach((p) => p.classList.add("hidden"));
 
             btn.setAttribute("aria-selected", "true");
-            btn.classList.remove("text-gray-500", "border-transparent", "hover:text-gray-700", "hover:border-gray-300");
-            btn.classList.add("text-blue-600", "border-blue-600", "hover:text-blue-600", "hover:border-blue-600");
+            btn.classList.remove(
+              "text-gray-500",
+              "border-transparent",
+              "hover:text-gray-700",
+              "hover:border-gray-300",
+            );
+            btn.classList.add(
+              "text-blue-600",
+              "border-blue-600",
+              "hover:text-blue-600",
+              "hover:border-blue-600",
+            );
 
             const panel = document.getElementById(target);
             if (panel) panel.classList.remove("hidden");
@@ -797,7 +849,8 @@
           if (!files.length) {
             const header = document.getElementById("eventHeader");
             const warning = document.createElement("div");
-            warning.className = "mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md";
+            warning.className =
+              "mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md";
             warning.innerHTML = `
               <svg class="w-8 h-8 mx-auto mb-2 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
@@ -824,7 +877,8 @@
         } catch (err) {
           const header = document.getElementById("eventHeader");
           header.innerHTML = "";
-          header.className = "mb-8 text-center p-8 bg-red-50 border border-red-200 rounded-lg";
+          header.className =
+            "mb-8 text-center p-8 bg-red-50 border border-red-200 rounded-lg";
 
           const icon = document.createElement("div");
           icon.innerHTML = `
@@ -840,7 +894,8 @@
 
           const msg = document.createElement("p");
           msg.className = "text-base text-red-600";
-          msg.textContent = "Please check that the event metadata is available and try again.";
+          msg.textContent =
+            "Please check that the event metadata is available and try again.";
 
           header.appendChild(title);
           header.appendChild(msg);
