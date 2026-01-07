@@ -39,7 +39,7 @@
     </style>
   </head>
   <body class="bg-pin">
-    <%- await include('../partials/site-header') %>
+    <%- await include('../partials/site-header', { title: 'GoBowling Shipley Lanes' }) %>
 
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
       <!-- Page Header -->
@@ -236,9 +236,7 @@
       <% } %>
 
       <!-- Footer -->
-      <footer class="mt-12 text-center text-sm text-gray-500 border-t border-gray-200 pt-8">
-        <p>&copy; <%= new Date().getFullYear() %> GoBowling Shipley Lanes &bull; Built with &hearts; for bowling</p>
-      </footer>
+      <%- await include('../partials/footer') %>
     </main>
 
     <% if (events.length > 0) { %>
