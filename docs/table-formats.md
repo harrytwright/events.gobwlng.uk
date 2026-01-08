@@ -5,6 +5,7 @@ This project supports standardized tables for common result formats and a per-fi
 ## Standard Results (`format: "results"`)
 
 Expected header set (optional columns are skipped if missing):
+
 - `Place`
 - `Team` (optional)
 - `Player 1` … `Player N` (up to 5)
@@ -19,6 +20,7 @@ This is intended for `results.csv` so widths and sorting stay consistent across 
 ## Singles (`format: "singles"`)
 
 Expected header set (optional columns are skipped if missing):
+
 - `Place`
 - `Player`
 - `HCP` (optional)
@@ -30,6 +32,7 @@ Expected header set (optional columns are skipped if missing):
 ## Format Options
 
 You can override player/game limits per file:
+
 ```json
 { "format": "results", "formatOptions": { "maxPlayers": 5, "maxGames": 9 } }
 ```
@@ -37,19 +40,39 @@ You can override player/game limits per file:
 ## Custom Column Mapping
 
 For non-standard CSVs (group stages, side pots, etc.), define an explicit column list:
+
 ```json
 {
   "name": "Scratch Pot",
   "file": "scratch-pot.csv",
   "columns": [
-    { "key": "Place", "label": "Place", "type": "number", "sortable": true, "width": "min-w-[4rem]" },
-    { "key": "Player", "label": "Player", "type": "string", "sortable": true, "width": "min-w-[10rem]" },
-    { "key": "Scratch", "label": "Scratch", "type": "number", "sortable": true, "width": "min-w-[6rem]" }
+    {
+      "key": "Place",
+      "label": "Place",
+      "type": "number",
+      "sortable": true,
+      "width": "min-w-[4rem]"
+    },
+    {
+      "key": "Player",
+      "label": "Player",
+      "type": "string",
+      "sortable": true,
+      "width": "min-w-[10rem]"
+    },
+    {
+      "key": "Scratch",
+      "label": "Scratch",
+      "type": "number",
+      "sortable": true,
+      "width": "min-w-[6rem]"
+    }
   ]
 }
 ```
 
 ### Column Fields
+
 - `key` (required): CSV header to read.
 - `label`: Display name for the table header.
 - `type`: `number` or `string` (controls sorting).
@@ -57,5 +80,6 @@ For non-standard CSVs (group stages, side pots, etc.), define an explicit column
 - `width`: Tailwind width class (e.g., `min-w-[6rem]`).
 
 ## Notes
+
 - If both `format` and `columns` are present, `columns` wins.
 - Any columns not listed in `columns` are hidden.

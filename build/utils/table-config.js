@@ -14,7 +14,12 @@ const resultsBaseColumns = [
   { key: "Team", label: "Team", type: "string", sortable: false },
   { key: "HCP", label: "HCP", type: "number", sortable: true },
   { key: "Scratch", label: "Scratch", type: "number", sortable: true },
-  { key: "Scratch Series", label: "Scratch Series", type: "number", sortable: true },
+  {
+    key: "Scratch Series",
+    label: "Scratch Series",
+    type: "number",
+    sortable: true,
+  },
   { key: "HCP Series", label: "HCP Series", type: "number", sortable: true },
   { key: "Squad", label: "Squad", type: "string", sortable: true },
 ];
@@ -24,7 +29,12 @@ const singlesBaseColumns = [
   { key: "Player", label: "Player", type: "string", sortable: false },
   { key: "HCP", label: "HCP", type: "number", sortable: true },
   { key: "Scratch", label: "Scratch", type: "number", sortable: true },
-  { key: "Scratch Series", label: "Scratch Series", type: "number", sortable: true },
+  {
+    key: "Scratch Series",
+    label: "Scratch Series",
+    type: "number",
+    sortable: true,
+  },
   { key: "HCP Series", label: "HCP Series", type: "number", sortable: true },
   { key: "Squad", label: "Squad", type: "string", sortable: true },
 ];
@@ -48,9 +58,18 @@ function toColumnConfig(column) {
   return {
     key: column.key,
     label: column.label || column.key,
-    type: column.type || (numericHeaderHints.some((hint) => column.key.toLowerCase().includes(hint)) ? "number" : "string"),
+    type:
+      column.type ||
+      (numericHeaderHints.some((hint) =>
+        column.key.toLowerCase().includes(hint),
+      )
+        ? "number"
+        : "string"),
     sortable: column.sortable !== false,
-    width: column.width || columnWidthMap[column.label || column.key] || columnWidthMap["*"],
+    width:
+      column.width ||
+      columnWidthMap[column.label || column.key] ||
+      columnWidthMap["*"],
   };
 }
 
@@ -64,7 +83,10 @@ function buildGameColumns(headers, maxGames = DEFAULT_MAX_GAMES) {
         label: key,
         type: "number",
         sortable: true,
-        width: columnWidthMap[key] || columnWidthMap["Game 1"] || columnWidthMap["*"],
+        width:
+          columnWidthMap[key] ||
+          columnWidthMap["Game 1"] ||
+          columnWidthMap["*"],
       });
     }
   }
@@ -92,7 +114,10 @@ function buildPlayerColumns(headers, maxPlayers = DEFAULT_MAX_PLAYERS) {
         label: key,
         type: "string",
         sortable: false,
-        width: columnWidthMap[key] || columnWidthMap["Player 1"] || columnWidthMap["*"],
+        width:
+          columnWidthMap[key] ||
+          columnWidthMap["Player 1"] ||
+          columnWidthMap["*"],
       });
     }
   }
@@ -134,17 +159,21 @@ export function buildColumnsFromMeta(columns) {
   return columns.map((column) => toColumnConfig(column));
 }
 
-export function buildTabConfig({
-  headers,
-  rows,
-  fileConfig,
-  defaultSortKey,
-}) {
+export function buildTabConfig({ headers, rows, fileConfig, defaultSortKey }) {
   const metaColumns = buildColumnsFromMeta(fileConfig?.columns);
-  const formatColumns = buildColumnsFromFormat(fileConfig?.format, headers, fileConfig?.formatOptions);
-  const columns = metaColumns || formatColumns || headers.map((key) => toColumnConfig({ key }));
+  const formatColumns = buildColumnsFromFormat(
+    fileConfig?.format,
+    headers,
+    fileConfig?.formatOptions,
+  );
+  const columns =
+    metaColumns ||
+    formatColumns ||
+    headers.map((key) => toColumnConfig({ key }));
 
-  const sortKeyCandidate = columns.find((column) => column.sortable && column.key === defaultSortKey)
+  const sortKeyCandidate = columns.find(
+    (column) => column.sortable && column.key === defaultSortKey,
+  )
     ? defaultSortKey
     : columns.find((column) => column.sortable)?.key || "";
 
@@ -158,13 +187,22 @@ export function buildTabConfig({
 export function getDisplayBadges(meta) {
   const badges = [];
   if (meta.format) {
-    badges.push({ type: "format", label: formatDisplayNames[meta.format] || "Unknown" });
+    badges.push({
+      type: "format",
+      label: formatDisplayNames[meta.format] || "Unknown",
+    });
   }
   if (meta.type) {
-    badges.push({ type: "type", label: typeDisplayNames[meta.type] || "Unknown" });
+    badges.push({
+      type: "type",
+      label: typeDisplayNames[meta.type] || "Unknown",
+    });
   }
   if (meta.category) {
-    badges.push({ type: "category", label: categoryDisplayNames[meta.category] || "Unknown" });
+    badges.push({
+      type: "category",
+      label: categoryDisplayNames[meta.category] || "Unknown",
+    });
   }
   if (meta.pattern) {
     badges.push({ type: "pattern", label: meta.pattern });

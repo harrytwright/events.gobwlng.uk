@@ -337,11 +337,11 @@ function createPodiumBlock(entry, position) {
                 type: "div",
                 props: {
                   style: {
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    marginTop: 'auto',
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginTop: "auto",
                     paddingBottom: 0,
                     marginBottom: 0, // lifts content off the bottom edge
                   },

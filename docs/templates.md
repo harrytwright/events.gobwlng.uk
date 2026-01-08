@@ -21,16 +21,16 @@ The main template for displaying tournament results. Receives pre-parsed data fr
 
 ### Template Variables
 
-| Variable             | Type   | Description                               |
-| -------------------- | ------ | ----------------------------------------- |
-| `meta`               | Object | Event metadata from `meta.json`           |
+| Variable             | Type   | Description                                     |
+| -------------------- | ------ | ----------------------------------------------- |
+| `meta`               | Object | Event metadata from `meta.json`                 |
 | `tabs`               | Array  | Tab data with column config and pre-sorted rows |
-| `tableState`         | Object | Pre-built state for client-side sorting   |
-| `lockfile`           | Object | Build metadata with timestamps            |
-| `formatDisplayNames` | Object | Format slug → display name mapping        |
-| `typeDisplayNames`   | Object | Type slug → display name mapping          |
-| `columnWidthMap`     | Object | Column name → Tailwind width class        |
-| `numericHeaderHints` | Array  | Keywords indicating numeric columns       |
+| `tableState`         | Object | Pre-built state for client-side sorting         |
+| `lockfile`           | Object | Build metadata with timestamps                  |
+| `formatDisplayNames` | Object | Format slug → display name mapping              |
+| `typeDisplayNames`   | Object | Type slug → display name mapping                |
+| `columnWidthMap`     | Object | Column name → Tailwind width class              |
+| `numericHeaderHints` | Array  | Keywords indicating numeric columns             |
 
 ### Helper Functions Available
 

@@ -97,7 +97,12 @@ async function processEvent(event) {
         defaultSortKey: defaultKey,
       });
       const sortedRows = tabConfig.defaultSortKey
-        ? sortRows(tabConfig.rows, tabConfig.defaultSortKey, "asc", tabConfig.columns)
+        ? sortRows(
+            tabConfig.rows,
+            tabConfig.defaultSortKey,
+            "asc",
+            tabConfig.columns,
+          )
         : tabConfig.rows;
 
       tabs.push({
