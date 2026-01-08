@@ -7,6 +7,7 @@
 export const formatDisplayNames = {
   "doubles-reentry": "Re-Entry Doubles",
   "doubles-standard": "Standard Doubles",
+  "fours-combination": "Combination 4's",
   "fives-combination": "Combination 5's",
   "fives-diamond": "Diamond 5's",
   "fives-standard": "Standard 5's",
@@ -149,9 +150,108 @@ export function getColumnWidthClass(h) {
  */
 export function formatDateRange(dates) {
   if (!Array.isArray(dates) || dates.length === 0) return "";
-  if (dates.length === 1) return dates[0];
-  if (dates.length === 2) return dates[0] + " – " + dates[1];
-  return dates.join(", ");
+
+  const flattened = [];
+  dates.forEach((d) => {
+    if (Array.isArray(d)) {
+      d.forEach((nested) => flattened.push(nested));
+    } else {
+      flattened.push(d);
+    }
+  });
+
+  const cleaned = flattened.filter(Boolean);
+  if (cleaned.length === 0) return "";
+  if (cleaned.length === 1) return cleaned[0];
+  if (cleaned.length === 2) return cleaned[0] + " – " + cleaned[1];
+
+  const parsed = cleaned
+    .map((value) => parseDateParts(value))
+    .filter(Boolean);
+  if (parsed.length !== cleaned.length) {
+    return cleaned.join(", ");
+  }
+
+  parsed.sort((a, b) =>
+    a.year !== b.year
+      ? a.year - b.year
+      : a.month !== b.month
+        ? a.month - b.month
+        : a.day - b.day,
+  );
+
+  const monthNames = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+
+  const groups = [];
+  parsed.forEach(({ day, month, year }) => {
+    let group = groups.find((g) => g.month === month && g.year === year);
+    if (!group) {
+      group = { month, year, days: [] };
+      groups.push(group);
+    }
+    group.days.push(day);
+  });
+
+  groups.forEach((group) => {
+    group.days = Array.from(new Set(group.days)).sort((a, b) => a - b);
+  });
+
+  const sameYear = groups.every((g) => g.year === groups[0]?.year);
+  const groupLabels = groups.map((group) => {
+    const dayLabel = joinList(group.days.map(formatDayOrdinal));
+    const monthLabel = monthNames[group.month - 1] || "";
+    return `${dayLabel} ${monthLabel}${sameYear ? "" : ` ${group.year}`}`;
+  });
+
+  const rangeLabel = joinList(groupLabels);
+  return sameYear ? `${rangeLabel} ${groups[0].year}` : rangeLabel;
+}
+
+function parseDateParts(value) {
+  const match = String(value).trim().match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{2,4})$/);
+  if (!match) return null;
+  const day = Number(match[1]);
+  const month = Number(match[2]);
+  const year = Number(match[3]);
+  if (!day || !month || !year) return null;
+  return { day, month, year };
+}
+
+function formatDayOrdinal(day) {
+  const n = Number(day);
+  if (!Number.isFinite(n)) return String(day);
+  const mod100 = n % 100;
+  if (mod100 >= 11 && mod100 <= 13) return `${n}th`;
+  switch (n % 10) {
+    case 1:
+      return `${n}st`;
+    case 2:
+      return `${n}nd`;
+    case 3:
+      return `${n}rd`;
+    default:
+      return `${n}th`;
+  }
+}
+
+function joinList(items) {
+  const list = items.filter(Boolean);
+  if (list.length <= 1) return list[0] || "";
+  if (list.length === 2) return `${list[0]} & ${list[1]}`;
+  return `${list.slice(0, -1).join(", ")} & ${list[list.length - 1]}`;
 }
 
 /**

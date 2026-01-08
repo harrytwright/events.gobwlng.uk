@@ -1,0 +1,28 @@
+{
+  "format": "doubles-reentry",
+  "type": "handicap",
+  "pattern": "Wednesday 4's",
+  "name": "New Years Day Doubles 2025",
+  "category": "mixed",
+  "dates": ["01/01/2025"],
+  "organizer": "Terri-Anne Kay, Harry Wright",
+  "lastUpdated": "2026-01-05T22:56:00",
+  "description": "Our annual around New Years Doubles.",
+  "files": [
+    {
+      "name": "Results",
+      "file": "results.csv",
+      "format": "results"
+    },
+    {
+      "name": "Singles",
+      "file": "singles.csv",
+      "format": "singles"
+    },
+    {
+      "name": "Scratch Pot",
+      "file": "scratch-pot.csv",
+      "format": "singles"
+    }
+  ]
+}

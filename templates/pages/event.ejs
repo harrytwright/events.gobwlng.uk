@@ -250,6 +250,11 @@
           <% tabs.forEach((tab) => { %>
             <div id="<%= tab.id %>" class="tab-panel mt-6<%= tab.isActive ? '' : ' hidden' %>" role="tabpanel" aria-labelledby="<%= tab.id %>-tab">
               <div class="overflow-x-auto">
+                <%
+                  const placeKey = (tab.columns || []).find(
+                    (column) => column.key === 'Place' || column.label === 'Place'
+                  )?.key || 'Place';
+                %>
                 <table class="min-w-full w-max divide-y divide-gray-200">
                   <thead class="bg-gray-50 sticky top-0 z-10">
                     <tr id="<%= tab.id %>Header">
@@ -257,7 +262,7 @@
                         <%
                           const isSorted = column.key === tab.defaultSortKey;
                           const isSortable = column.sortable !== false;
-                          const isPlace = column.key === 'Place';
+                          const isPlace = column.key === 'Place' || column.label === 'Place';
                         %>
                         <th
                           class="<%= column.width %> px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider select-none <%= isSortable ? 'cursor-pointer' : 'cursor-default' %> sticky top-0 z-10 group <%= isSorted ? 'bg-blue-50 text-blue-700' : 'bg-gray-50 text-gray-700 hover:bg-gray-100 hover:text-gray-900' %> transition-colors"
@@ -282,7 +287,7 @@
                   <tbody id="<%= tab.id %>Body" class="divide-y divide-gray-200 bg-white">
                     <% tab.rows.forEach((row, rowIndex) => { %>
                       <%
-                        const placeValue = parsePlace(safeGet(row, 'Place'));
+                        const placeValue = parsePlace(safeGet(row, placeKey));
                         const placeClass = getPlaceClass(placeValue);
                       %>
                       <tr class="<%= placeClass %> <%= rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50' %> hover:bg-blue-50 transition-colors">
@@ -415,7 +420,7 @@
           const th = document.createElement('th');
           const isSortable = column.sortable !== false;
           const isSorted = currentSort.key === column.key;
-          const isPlace = column.key === 'Place';
+          const isPlace = column.key === 'Place' || column.label === 'Place';
           th.className = [
             getColumnWidthClass(tableKey, column.key),
             'px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider select-none',
@@ -464,9 +469,13 @@
           }
         });
 
+        const placeKey = columns.find((column) =>
+          column.key === 'Place' || column.label === 'Place'
+        )?.key || 'Place';
+
         data.forEach((row, index) => {
           const tr = document.createElement('tr');
-          const placeValue = parsePlace(safeGetRowValue(row, 'Place'));
+          const placeValue = parsePlace(safeGetRowValue(row, placeKey));
           const placeClass = getPlaceClass(placeValue);
           tr.className = (index % 2 === 0
             ? 'bg-white hover:bg-blue-50 transition-colors'
