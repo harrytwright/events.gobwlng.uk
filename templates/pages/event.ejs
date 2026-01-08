@@ -1,6 +1,17 @@
 <%
   // Helper to safely get a value
   const safeGet = (obj, key) => obj[key] ?? obj[key?.trim?.()] ?? '';
+  const parsePlace = (value) => {
+    if (value === null || value === undefined) return NaN;
+    const match = String(value).trim().match(/-?\d+(\.\d+)?/);
+    return match ? Number(match[0]) : NaN;
+  };
+  const getPlaceClass = (placeValue) => {
+    if (placeValue === 1) return 'border-s-2 border-s-firebrick-600';
+    if (placeValue === 2) return 'border-s-2 border-s-deep-blue-600';
+    if (placeValue === 3) return 'border-s-2 border-s-amber-500';
+    return 'border-s-2 border-transparent';
+  };
   const pageTitle = meta.name || 'Tournament Results';
   const pageDescription = meta.description || `Results for ${meta.name || 'bowling tournament'}`;
   const sluggifiedTitle = slugify(meta.name || 'tournament');
@@ -270,7 +281,11 @@
                   </thead>
                   <tbody id="<%= tab.id %>Body" class="divide-y divide-gray-200 bg-white">
                     <% tab.rows.forEach((row, rowIndex) => { %>
-                      <tr class="<%= rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50' %> hover:bg-blue-50 transition-colors">
+                      <%
+                        const placeValue = parsePlace(safeGet(row, 'Place'));
+                        const placeClass = getPlaceClass(placeValue);
+                      %>
+                      <tr class="<%= placeClass %> <%= rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50' %> hover:bg-blue-50 transition-colors">
                         <% tab.columns.forEach((column) => { %>
                           <%
                             const v = safeGet(row, column.key);
@@ -320,6 +335,23 @@
         const n = Number(s);
         return Number.isFinite(n) ? n : NaN;
       }
+
+      function safeGetRowValue(row, key) {
+        return row[key] ?? row[key?.trim?.()] ?? '';
+      }
+
+      function parsePlace(value) {
+        if (value === null || value === undefined) return NaN;
+        const match = String(value).trim().match(/-?\d+(\.\d+)?/);
+        return match ? Number(match[0]) : NaN;
+      }
+
+      const getPlaceClass = (placeValue) => {
+        if (placeValue === 1) return 'border-s-2 border-s-firebrick-600';
+        if (placeValue === 2) return 'border-s-2 border-s-deep-blue-600';
+        if (placeValue === 3) return 'border-s-2 border-s-amber-500';
+        return 'border-s-2 border-transparent';
+      };
 
       function sortRows(rows, key, dir, columns = []) {
         const withIndex = rows.map((r, i) => ({ r, i }));
@@ -431,9 +463,11 @@
 
         data.forEach((row, index) => {
           const tr = document.createElement('tr');
-          tr.className = index % 2 === 0
+          const placeValue = parsePlace(safeGetRowValue(row, 'Place'));
+          const placeClass = getPlaceClass(placeValue);
+          tr.className = (index % 2 === 0
             ? 'bg-white hover:bg-blue-50 transition-colors'
-            : 'bg-gray-50 hover:bg-blue-50 transition-colors';
+            : 'bg-gray-50 hover:bg-blue-50 transition-colors') + ' ' + placeClass;
           columns.forEach((column) => {
             const td = document.createElement('td');
             const v = row[column.key] ?? row[column.key?.trim?.()] ?? '';
