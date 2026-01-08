@@ -246,6 +246,7 @@
                         <%
                           const isSorted = column.key === tab.defaultSortKey;
                           const isSortable = column.sortable !== false;
+                          const isPlace = column.key === 'Place';
                         %>
                         <th
                           class="<%= column.width %> px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider select-none <%= isSortable ? 'cursor-pointer' : 'cursor-default' %> sticky top-0 z-10 group <%= isSorted ? 'bg-blue-50 text-blue-700' : 'bg-gray-50 text-gray-700 hover:bg-gray-100 hover:text-gray-900' %> transition-colors"
@@ -254,9 +255,9 @@
                           role="columnheader"
                         >
                           <div class="flex items-center gap-1">
-                            <span><%= column.label %></span>
+                            <span class="<%= isPlace ? 'sr-only' : '' %>"><%= column.label %></span>
                             <% if (isSortable) { %>
-                              <span class="<%= isSorted ? 'ml-1 text-current opacity-100' : 'ml-1 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity' %>">
+                              <span class="<%= isSorted ? 'ml-1 text-current opacity-100' : isPlace ? 'ml-1 text-gray-400 opacity-70' : 'ml-1 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity' %>">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
                                   <path stroke-linecap="round" stroke-linejoin="round" d="M3 4.5h14.25M3 9h9.75M3 13.5h9.75m4.5-4.5v12m0 0-3.75-3.75M17.25 21 21 17.25" />
                                 </svg>
@@ -369,6 +370,7 @@
           const th = document.createElement('th');
           const isSortable = column.sortable !== false;
           const isSorted = currentSort.key === column.key;
+          const isPlace = column.key === 'Place';
           th.className = [
             getColumnWidthClass(tableKey, column.key),
             'px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider select-none',
@@ -386,13 +388,18 @@
           wrap.className = 'flex items-center gap-1';
           const label = document.createElement('span');
           label.textContent = column.label;
+          if (isPlace) {
+            label.className = 'sr-only';
+          }
           wrap.appendChild(label);
 
           if (isSortable) {
             const iconSpan = document.createElement('span');
             iconSpan.className = isSorted
               ? 'ml-1 text-current opacity-100'
-              : 'ml-1 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity';
+              : isPlace
+                ? 'ml-1 text-gray-400 opacity-70'
+                : 'ml-1 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity';
 
             iconSpan.innerHTML = isSorted
               ? currentSort.dir === 'asc'
