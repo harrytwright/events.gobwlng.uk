@@ -11,7 +11,7 @@ const DEFAULT_MAX_GAMES = 9;
 
 const resultsBaseColumns = [
   { key: "Place", label: "Place", type: "number", sortable: true },
-  { key: "Team", label: "Team", type: "string", sortable: true },
+  { key: "Team", label: "Team", type: "string", sortable: false },
   { key: "HCP", label: "HCP", type: "number", sortable: true },
   { key: "Scratch", label: "Scratch", type: "number", sortable: true },
   { key: "Scratch Series", label: "Scratch Series", type: "number", sortable: true },
@@ -21,7 +21,7 @@ const resultsBaseColumns = [
 
 const singlesBaseColumns = [
   { key: "Place", label: "Place", type: "number", sortable: true },
-  { key: "Player", label: "Player", type: "string", sortable: true },
+  { key: "Player", label: "Player", type: "string", sortable: false },
   { key: "HCP", label: "HCP", type: "number", sortable: true },
   { key: "Scratch", label: "Scratch", type: "number", sortable: true },
   { key: "Scratch Series", label: "Scratch Series", type: "number", sortable: true },
@@ -79,7 +79,7 @@ function buildPlayerColumns(headers, maxPlayers = DEFAULT_MAX_PLAYERS) {
       key: playerKey,
       label: playerKey,
       type: "string",
-      sortable: true,
+      sortable: false,
       width: columnWidthMap[playerKey] || columnWidthMap["*"],
     });
   }
@@ -91,7 +91,7 @@ function buildPlayerColumns(headers, maxPlayers = DEFAULT_MAX_PLAYERS) {
         key,
         label: key,
         type: "string",
-        sortable: true,
+        sortable: false,
         width: columnWidthMap[key] || columnWidthMap["Player 1"] || columnWidthMap["*"],
       });
     }
