@@ -1,0 +1,104 @@
+{
+  "format": "fours-combination",
+  "type": "handicap",
+  "pattern": "Wednesday 4's",
+  "name": "7th Annual SBC Combo 4's",
+  "category": "mixed",
+  "dates": ["23/08/2025", "24/08/2025", "30/08/2025", "31/08/2025"],
+  "organizer": "Lee Metcalfe, Debbie Alderson",
+  "lastUpdated": "2026-01-05T22:56:00",
+  "description": "Our biggest event. The SBC combination 4's",
+  "files": [
+    {
+      "name": "Results",
+      "file": "results.csv",
+      "columns": [
+        { "key": "Place", "label": "Place", "type": "number", "sortable": true },
+        { "key": "Team", "label": "Team", "type": "string", "sortable": true },
+        { "key": "Doubles Scratch", "label": "Doubles Scratch", "type": "number", "sortable": true },
+        { "key": "Doubles HCP", "label": "Doubles HCP", "type": "number", "sortable": true },
+        { "key": "Trios Scratch", "label": "Trios Scratch", "type": "number", "sortable": true },
+        { "key": "Trios HCP", "label": "Trios HCP", "type": "number", "sortable": true },
+        { "key": "Team Scratch", "label": "Team Scratch", "type": "number", "sortable": true },
+        { "key": "Team HCP", "label": "Team HCP", "type": "number", "sortable": true },
+        { "key": "Singles Scratch", "label": "Singles Scratch", "type": "number", "sortable": true },
+        { "key": "Singles HCP", "label": "Singles HCP", "type": "number", "sortable": true },
+        { "key": "Masters Scratch", "label": "Masters Scratch", "type": "number", "sortable": true },
+        { "key": "Masters HCP", "label": "Masters HCP", "type": "number", "sortable": true },
+        { "key": "Total Scratch", "label": "Total Scratch", "type": "number", "sortable": true },
+        { "key": "Total HCP", "label": "Total HCP", "type": "number", "sortable": true }
+      ]
+    },
+    {
+      "name": "Doubles",
+      "file": "doubles.csv",
+      "format": "results"
+    },
+    {
+      "name": "Trios",
+      "file": "trios.csv",
+      "format": "results"
+    },
+    {
+      "name": "Fours",
+      "file": "fours.csv",
+      "format": "results"
+    },
+    {
+      "name": "Singles",
+      "file": "singles.csv",
+      "columns": [
+        { "key": "Position", "label": "Place", "type": "number", "sortable": true },
+        { "key": "TEAM", "label": "Team", "type": "string", "sortable": true },
+        { "key": "PLAYER", "label": "Player", "type": "string", "sortable": true },
+        { "key": "HCP", "label": "HCP", "type": "number", "sortable": true },
+        { "key": "GAME 1", "label": "Game 1", "type": "number", "sortable": true },
+        { "key": "GAME 2", "label": "Game 2", "type": "number", "sortable": true },
+        { "key": "GAME 3", "label": "Game 3", "type": "number", "sortable": true },
+        { "key": "Scratch Total", "label": "Scratch Series", "type": "number", "sortable": true },
+        { "key": "Grand total with HCP", "label": "HCP Series", "type": "number", "sortable": true }
+      ]
+    },
+    {
+      "name": "Masters",
+      "file": "masters.csv",
+      "columns": [
+        { "key": "Position", "label": "Place", "type": "number", "sortable": true },
+        { "key": "TEAM", "label": "Team", "type": "string", "sortable": true },
+        { "key": "PLAYER", "label": "Player", "type": "string", "sortable": true },
+        { "key": "HCP", "label": "HCP", "type": "number", "sortable": true },
+        { "key": "GAME 1", "label": "Game 1", "type": "number", "sortable": true },
+        { "key": "GAME 2", "label": "Game 2", "type": "number", "sortable": true },
+        { "key": "GAME 3", "label": "Game 3", "type": "number", "sortable": true },
+        { "key": "GAME 4", "label": "Game 4", "type": "number", "sortable": true },
+        { "key": "GAME 5", "label": "Game 5", "type": "number", "sortable": true },
+        { "key": "GAME 6", "label": "Game 6", "type": "number", "sortable": true },
+        { "key": "Scratch Total", "label": "Scratch Series", "type": "number", "sortable": true },
+        { "key": "Grand total with HCP", "label": "HCP Series", "type": "number", "sortable": true }
+      ]
+    },
+    {
+      "name": "Individual",
+      "file": "individual.csv",
+      "columns": [
+        { "key": "Place", "label": "Place", "type": "number", "sortable": true },
+        { "key": "Player", "label": "Player", "type": "string", "sortable": true },
+        { "key": "Team", "label": "Team", "type": "string", "sortable": true },
+        { "key": "Average", "label": "Average", "type": "number", "sortable": true },
+        { "key": "HCP", "label": "HCP", "type": "number", "sortable": true },
+        { "key": "Doubles Scratch", "label": "Doubles Scratch", "type": "number", "sortable": true },
+        { "key": "Doubles HCP", "label": "Doubles HCP", "type": "number", "sortable": true },
+        { "key": "Trios Scratch", "label": "Trios Scratch", "type": "number", "sortable": true },
+        { "key": "Trios HCP", "label": "Trios HCP", "type": "number", "sortable": true },
+        { "key": "Team Scratch", "label": "Team Scratch", "type": "number", "sortable": true },
+        { "key": "Team HCP", "label": "Team HCP", "type": "number", "sortable": true },
+        { "key": "Singles Scratch", "label": "Singles Scratch", "type": "number", "sortable": true },
+        { "key": "Singles HCP", "label": "Singles HCP", "type": "number", "sortable": true },
+        { "key": "Masters Scratch", "label": "Masters Scratch", "type": "number", "sortable": true },
+        { "key": "Masters HCP", "label": "Masters HCP", "type": "number", "sortable": true },
+        { "key": "Total Scratch", "label": "Total Scratch", "type": "number", "sortable": true },
+        { "key": "Total HCP", "label": "Total HCP", "type": "number", "sortable": true }
+      ]
+    }
+  ]
+}
