@@ -10,6 +10,7 @@ import postcssConfig from "../postcss.config.mjs";
 import { discoverEvents } from "./utils/discovery.js";
 import { parseCSV } from "./utils/csv.js";
 import { generateLockfile, writeLockfile } from "./utils/lockfile.js";
+import { buildTabConfig } from "./utils/table-config.js";
 import {
   slugify,
   sortRows,
@@ -73,6 +74,15 @@ async function processEvent(event) {
 
   for (const fileConfig of files) {
     const csvPath = path.join(event.basePath, fileConfig.file);
+    const resolvedFileConfig = { ...fileConfig };
+    if (!resolvedFileConfig.format && !resolvedFileConfig.columns) {
+      if (resolvedFileConfig.file === "results.csv") {
+        resolvedFileConfig.format = "results";
+      }
+      if (resolvedFileConfig.file === "singles.csv") {
+        resolvedFileConfig.format = "singles";
+      }
+    }
 
     try {
       const rows = await parseCSV(csvPath);
@@ -80,13 +90,23 @@ async function processEvent(event) {
 
       // Apply default sort by "Place" column if it exists
       const defaultKey = headers.includes("Place") ? "Place" : headers[0];
-      const sortedRows = defaultKey ? sortRows(rows, defaultKey, "asc") : rows;
+      const tabConfig = buildTabConfig({
+        headers,
+        rows,
+        fileConfig: resolvedFileConfig,
+        defaultSortKey: defaultKey,
+      });
+      const sortedRows = tabConfig.defaultSortKey
+        ? sortRows(tabConfig.rows, tabConfig.defaultSortKey, "asc", tabConfig.columns)
+        : tabConfig.rows;
 
       tabs.push({
         id: slugify(fileConfig.name || `tab-${tabs.length + 1}`),
         name: fileConfig.name || `Tab ${tabs.length + 1}`,
-        headers,
+        columns: tabConfig.columns,
         rows: sortedRows,
+        rowsOriginal: tabConfig.rows,
+        defaultSortKey: tabConfig.defaultSortKey,
         isActive: tabs.length === 0,
       });
     } catch (err) {
@@ -106,12 +126,13 @@ async function processEvent(event) {
   const tableState = {};
   for (const tab of tabs) {
     tableState[tab.id] = {
-      headers: tab.headers,
-      rowsOriginal: tab.rows,
+      columns: tab.columns,
+      rowsOriginal: tab.rowsOriginal,
       sort: {
-        key: tab.headers.includes("Place") ? "Place" : tab.headers[0] || "",
+        key: tab.defaultSortKey || "",
         dir: "asc",
       },
+      defaultSortKey: tab.defaultSortKey || "",
     };
   }
 

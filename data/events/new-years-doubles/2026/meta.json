@@ -11,15 +11,18 @@
   "files": [
     {
       "name": "Results",
-      "file": "results.csv"
+      "file": "results.csv",
+      "format": "results"
     },
     {
       "name": "Singles",
-      "file": "singles.csv"
+      "file": "singles.csv",
+      "format": "singles"
     },
     {
       "name": "Scratch Pot",
-      "file": "scratch-pot.csv"
+      "file": "scratch-pot.csv",
+      "format": "singles"
     }
   ]
 }

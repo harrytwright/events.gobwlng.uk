@@ -239,25 +239,29 @@
           <% tabs.forEach((tab) => { %>
             <div id="<%= tab.id %>" class="tab-panel mt-6<%= tab.isActive ? '' : ' hidden' %>" role="tabpanel" aria-labelledby="<%= tab.id %>-tab">
               <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
+                <table class="min-w-full w-max divide-y divide-gray-200">
                   <thead class="bg-gray-50 sticky top-0 z-10">
                     <tr id="<%= tab.id %>Header">
-                      <% tab.headers.forEach((h) => { %>
+                      <% tab.columns.forEach((column) => { %>
                         <%
-                          const isSorted = (tab.headers.includes('Place') ? h === 'Place' : h === tab.headers[0]);
+                          const isSorted = column.key === tab.defaultSortKey;
+                          const isSortable = column.sortable !== false;
                         %>
                         <th
-                          class="<%= getColumnWidthClass(h) %> px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider select-none cursor-pointer sticky top-0 z-10 group <%= isSorted ? 'bg-blue-50 text-blue-700' : 'bg-gray-50 text-gray-700 hover:bg-gray-100 hover:text-gray-900' %> transition-colors"
-                          data-key="<%= h %>"
+                          class="<%= column.width %> px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider select-none <%= isSortable ? 'cursor-pointer' : 'cursor-default' %> sticky top-0 z-10 group <%= isSorted ? 'bg-blue-50 text-blue-700' : 'bg-gray-50 text-gray-700 hover:bg-gray-100 hover:text-gray-900' %> transition-colors"
+                          data-key="<%= column.key %>"
+                          data-sortable="<%= isSortable ? 'true' : 'false' %>"
                           role="columnheader"
                         >
                           <div class="flex items-center gap-1">
-                            <span><%= h %></span>
-                            <span class="<%= isSorted ? 'ml-1 text-current opacity-100' : 'ml-1 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity' %>">
-                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 4.5h14.25M3 9h9.75M3 13.5h9.75m4.5-4.5v12m0 0-3.75-3.75M17.25 21 21 17.25" />
-                              </svg>
-                            </span>
+                            <span><%= column.label %></span>
+                            <% if (isSortable) { %>
+                              <span class="<%= isSorted ? 'ml-1 text-current opacity-100' : 'ml-1 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity' %>">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
+                                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 4.5h14.25M3 9h9.75M3 13.5h9.75m4.5-4.5v12m0 0-3.75-3.75M17.25 21 21 17.25" />
+                                </svg>
+                              </span>
+                            <% } %>
                           </div>
                         </th>
                       <% }); %>
@@ -266,12 +270,12 @@
                   <tbody id="<%= tab.id %>Body" class="divide-y divide-gray-200 bg-white">
                     <% tab.rows.forEach((row, rowIndex) => { %>
                       <tr class="<%= rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50' %> hover:bg-blue-50 transition-colors">
-                        <% tab.headers.forEach((h) => { %>
+                        <% tab.columns.forEach((column) => { %>
                           <%
-                            const v = safeGet(row, h);
-                            const numeric = isNumericValue(v, h);
+                            const v = safeGet(row, column.key);
+                            const numeric = column.type === 'number' || isNumericValue(v, column.key);
                           %>
-                          <td class="<%= getColumnWidthClass(h) %> px-4 py-2 text-sm whitespace-nowrap <%= numeric ? 'text-right tabular-nums' : '' %> text-gray-900"><%= v %></td>
+                          <td class="<%= column.width %> px-4 py-2 text-sm whitespace-nowrap <%= numeric ? 'text-right tabular-nums' : '' %> text-gray-900"><%= v %></td>
                         <% }); %>
                       </tr>
                     <% }); %>
@@ -316,9 +320,11 @@
         return Number.isFinite(n) ? n : NaN;
       }
 
-      function sortRows(rows, key, dir) {
+      function sortRows(rows, key, dir, columns = []) {
         const withIndex = rows.map((r, i) => ({ r, i }));
-        const numericPreferred = isLikelyNumericHeader(key);
+        const numericPreferred =
+          columns.find((col) => col.key === key)?.type === 'number' ||
+          isLikelyNumericHeader(key);
         withIndex.sort((a, b) => {
           const av = a.r[key] ?? a.r[key?.trim?.()];
           const bv = b.r[key] ?? b.r[key?.trim?.()];
@@ -338,13 +344,18 @@
         return withIndex.map((x) => x.r);
       }
 
-      function getColumnWidthClass(h) {
-        return columnWidthMap[h] || columnWidthMap['*'];
+      function getColumnConfig(tableKey, key) {
+        return tableState[tableKey]?.columns?.find((col) => col.key === key);
+      }
+
+      function getColumnWidthClass(tableKey, key) {
+        const col = getColumnConfig(tableKey, key);
+        return col?.width || columnWidthMap[key] || columnWidthMap['*'];
       }
 
       // ---- Table Rendering ----
 
-      function renderTable(headers, data, headerId, bodyId, tableKey) {
+      function renderTable(columns, data, headerId, bodyId, tableKey) {
         const theadTr = document.getElementById(headerId);
         const tbody = document.getElementById(bodyId);
         if (!theadTr || !tbody) return;
@@ -354,51 +365,61 @@
 
         const currentSort = tableState[tableKey]?.sort || { key: '', dir: 'asc' };
 
-        headers.forEach((h) => {
+        columns.forEach((column) => {
           const th = document.createElement('th');
-          const isSorted = currentSort.key === h;
+          const isSortable = column.sortable !== false;
+          const isSorted = currentSort.key === column.key;
           th.className = [
-            getColumnWidthClass(h),
+            getColumnWidthClass(tableKey, column.key),
             'px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider select-none',
-            'cursor-pointer',
+            isSortable ? 'cursor-pointer' : 'cursor-default',
             'sticky top-0 z-10 group',
             isSorted
               ? 'bg-blue-50 text-blue-700'
               : 'bg-gray-50 text-gray-700 hover:bg-gray-100 hover:text-gray-900',
             'transition-colors',
           ].join(' ');
-          th.setAttribute('data-key', h);
+          th.setAttribute('data-key', column.key);
           th.setAttribute('role', 'columnheader');
 
           const wrap = document.createElement('div');
           wrap.className = 'flex items-center gap-1';
           const label = document.createElement('span');
-          label.textContent = h;
+          label.textContent = column.label;
           wrap.appendChild(label);
 
-          const iconSpan = document.createElement('span');
-          iconSpan.className = isSorted
-            ? 'ml-1 text-current opacity-100'
-            : 'ml-1 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity';
+          if (isSortable) {
+            const iconSpan = document.createElement('span');
+            iconSpan.className = isSorted
+              ? 'ml-1 text-current opacity-100'
+              : 'ml-1 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity';
 
-          iconSpan.innerHTML = isSorted
-            ? currentSort.dir === 'asc'
-              ? `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4.5h14.25M3 9h9.75M3 13.5h9.75m4.5-4.5v12m0 0-3.75-3.75M17.25 21 21 17.25" /></svg>`
-              : `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4.5h14.25M3 9h9.75M3 13.5h5.25m5.25-.75L17.25 9m0 0L21 12.75M17.25 9v12" /></svg>`
-            : `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4.5h14.25M3 9h9.75M3 13.5h5.25m5.25-.75L17.25 9m0 0L21 12.75M17.25 9v12" /></svg>`;
+            iconSpan.innerHTML = isSorted
+              ? currentSort.dir === 'asc'
+                ? `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4.5h14.25M3 9h9.75M3 13.5h9.75m4.5-4.5v12m0 0-3.75-3.75M17.25 21 21 17.25" /></svg>`
+                : `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4.5h14.25M3 9h9.75M3 13.5h5.25m5.25-.75L17.25 9m0 0L21 12.75M17.25 9v12" /></svg>`
+              : `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4.5h14.25M3 9h9.75M3 13.5h5.25m5.25-.75L17.25 9m0 0L21 12.75M17.25 9v12" /></svg>`;
 
-          wrap.appendChild(iconSpan);
+            wrap.appendChild(iconSpan);
+          }
           th.appendChild(wrap);
           theadTr.appendChild(th);
 
-          th.addEventListener('click', () => {
-            const prev = tableState[tableKey].sort;
-            const nextDir = prev.key === h && prev.dir === 'asc' ? 'desc' : 'asc';
-            tableState[tableKey].sort = { key: h, dir: nextDir };
-            const sorted = sortRows(tableState[tableKey].rowsOriginal, h, nextDir);
-            renderTable(headers, sorted, headerId, bodyId, tableKey);
-            applySearch();
-          });
+          if (isSortable) {
+            th.addEventListener('click', () => {
+              const prev = tableState[tableKey].sort;
+              const nextDir = prev.key === column.key && prev.dir === 'asc' ? 'desc' : 'asc';
+              tableState[tableKey].sort = { key: column.key, dir: nextDir };
+              const sorted = sortRows(
+                tableState[tableKey].rowsOriginal,
+                column.key,
+                nextDir,
+                tableState[tableKey].columns,
+              );
+              renderTable(columns, sorted, headerId, bodyId, tableKey);
+              applySearch();
+            });
+          }
         });
 
         data.forEach((row, index) => {
@@ -406,14 +427,15 @@
           tr.className = index % 2 === 0
             ? 'bg-white hover:bg-blue-50 transition-colors'
             : 'bg-gray-50 hover:bg-blue-50 transition-colors';
-          headers.forEach((h) => {
+          columns.forEach((column) => {
             const td = document.createElement('td');
-            const v = row[h] ?? row[h?.trim?.()] ?? '';
+            const v = row[column.key] ?? row[column.key?.trim?.()] ?? '';
             const isNumeric = (typeof v === 'number' && !isNaN(v)) ||
               (typeof v === 'string' && v.trim() !== '' && !isNaN(Number(v.replaceAll(',', ''))));
-            const hintNumeric = isLikelyNumericHeader(h);
-            td.className = getColumnWidthClass(h) + ' px-4 py-2 text-sm whitespace-nowrap ' +
-              (isNumeric || hintNumeric ? 'text-right tabular-nums text-gray-900' : 'text-gray-900');
+            const hintNumeric = isLikelyNumericHeader(column.key);
+            const columnNumeric = column.type === 'number';
+            td.className = getColumnWidthClass(tableKey, column.key) + ' px-4 py-2 text-sm whitespace-nowrap ' +
+              (columnNumeric || isNumeric || hintNumeric ? 'text-right tabular-nums text-gray-900' : 'text-gray-900');
             td.textContent = v;
             tr.appendChild(td);
           });
@@ -423,7 +445,7 @@
         if (tbody.children.length === 0) {
           const noRow = document.createElement('tr');
           const td = document.createElement('td');
-          td.colSpan = headers.length || 1;
+          td.colSpan = columns.length || 1;
           td.className = 'text-center py-8 text-slate font-medium bg-gray-50';
           td.innerHTML = `
             <svg class="w-12 h-12 mx-auto mb-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -485,11 +507,15 @@
 
       function resetSortOnTabChange(targetKey) {
         const st = tableState[targetKey];
-        if (!st || !st.headers.length || !st.rowsOriginal.length) return;
-        const defaultKey = st.headers.includes('Place') ? 'Place' : st.headers[0];
+        if (!st || !st.columns.length || !st.rowsOriginal.length) return;
+        const defaultKey = st.defaultSortKey ||
+          st.columns.find((column) => column.sortable !== false)?.key ||
+          '';
         st.sort = { key: defaultKey, dir: 'asc' };
-        const sorted = sortRows(st.rowsOriginal, defaultKey, 'asc');
-        renderTable(st.headers, sorted, targetKey + 'Header', targetKey + 'Body', targetKey);
+        const sorted = defaultKey
+          ? sortRows(st.rowsOriginal, defaultKey, 'asc', st.columns)
+          : st.rowsOriginal;
+        renderTable(st.columns, sorted, targetKey + 'Header', targetKey + 'Body', targetKey);
         applySearch();
       }
 

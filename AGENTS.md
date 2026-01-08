@@ -10,6 +10,7 @@ This project pre-renders bowling event pages at build time. Key paths:
 - `static/` includes site assets (CSS, etc.).
 - `dist/` is generated output and is gitignored.
 - `docs/` contains reference docs; `_headers` and `wrangler.toml` support Cloudflare Pages.
+- `docs/table-formats.md` documents standard table formats and per-file column mapping.
 
 ## Build, Test, and Development Commands
 

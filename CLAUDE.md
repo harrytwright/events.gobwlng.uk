@@ -82,9 +82,9 @@ data/events/new-years-doubles/2026/
   "dates": ["03/01/2026", "04/01/2026"],
   "organizer": "Debbie Alderson, Harry Wright",
   "files": [
-    { "name": "Results", "file": "results.csv" },
-    { "name": "Singles", "file": "singles.csv" },
-    { "name": "Scratch Pot", "file": "scratch-pot.csv" }
+    { "name": "Results", "file": "results.csv", "format": "results" },
+    { "name": "Singles", "file": "singles.csv", "format": "singles" },
+    { "name": "Scratch Pot", "file": "scratch-pot.csv", "format": "singles" }
   ]
 }
 ```
@@ -97,7 +97,7 @@ Fields:
 - `name`: Display name for the event
 - `dates`: Array of dates (dd/mm/yyyy format)
 - `organizer`: Event organizer name(s)
-- `files`: Array of `{name, file}` objects defining tabs
+- `files`: Array of `{name, file, format?, columns?}` objects defining tabs (see `docs/table-formats.md`)
 
 ### Lockfile (`meta-lock.json`)
 
@@ -251,4 +251,5 @@ Included in templates for clean printing (hides controls, shows all tabs).
 ## Documentation
 
 - `docs/templates.md`: Detailed template reference guide
+- `docs/table-formats.md`: Table format presets and per-file column mapping
 - This file: Project overview and build system

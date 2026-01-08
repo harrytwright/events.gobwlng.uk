@@ -24,7 +24,7 @@ The main template for displaying tournament results. Receives pre-parsed data fr
 | Variable             | Type   | Description                               |
 | -------------------- | ------ | ----------------------------------------- |
 | `meta`               | Object | Event metadata from `meta.json`           |
-| `tabs`               | Array  | Tab data with headers and pre-sorted rows |
+| `tabs`               | Array  | Tab data with column config and pre-sorted rows |
 | `tableState`         | Object | Pre-built state for client-side sorting   |
 | `lockfile`           | Object | Build metadata with timestamps            |
 | `formatDisplayNames` | Object | Format slug → display name mapping        |
@@ -113,9 +113,9 @@ Tables are fully rendered at build time with all data:
     <table>
       <thead>
         <tr id="<%%= tab.id %>Header">
-          <%% tab.headers.forEach((h) => { %>
-            <th class="<%%= getColumnWidthClass(h) %>" data-key="<%%= h %>">
-              <%%= h %>
+          <%% tab.columns.forEach((column) => { %>
+            <th class="<%%= column.width %>" data-key="<%%= column.key %>">
+              <%%= column.label %>
             </th>
           <%% }); %>
         </tr>
@@ -123,9 +123,9 @@ Tables are fully rendered at build time with all data:
       <tbody id="<%%= tab.id %>Body">
         <%% tab.rows.forEach((row, rowIndex) => { %>
           <tr class="<%%= rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50' %>">
-            <%% tab.headers.forEach((h) => { %>
-              <td class="<%%= isNumericValue(row[h], h) ? 'text-right tabular-nums' : '' %>">
-                <%%= row[h] || '' %>
+            <%% tab.columns.forEach((column) => { %>
+              <td class="<%%= isNumericValue(row[column.key], column.key) ? 'text-right tabular-nums' : '' %>">
+                <%%= row[column.key] || '' %>
               </td>
             <%% }); %>
           </tr>
@@ -255,3 +255,4 @@ meta.json + CSV files
 3. **Git-Based Timestamps** - Lockfile captures last modification from git
 4. **Tab-Separated CSV** - PapaParse configured with `delimiter: '\t'`
 5. **Tailwind Build** - CSS generated during build via PostCSS
+6. **Table Formats** - Standard formats and per-file column mapping live in `docs/table-formats.md`

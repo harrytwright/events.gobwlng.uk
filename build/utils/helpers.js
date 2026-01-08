@@ -106,9 +106,11 @@ export function parseMaybeNumber(v) {
 /**
  * Sort rows by a key and direction.
  */
-export function sortRows(rows, key, dir) {
+export function sortRows(rows, key, dir, columns = null) {
   const withIndex = rows.map((r, i) => ({ r, i }));
-  const numericPreferred = isLikelyNumericHeader(key);
+  const numericPreferred =
+    (columns || []).find((col) => col.key === key)?.type === "number" ||
+    isLikelyNumericHeader(key);
 
   withIndex.sort((a, b) => {
     const av = a.r[key] ?? a.r[key?.trim?.()];
